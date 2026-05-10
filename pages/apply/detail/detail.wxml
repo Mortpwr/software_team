@@ -1,0 +1,39 @@
+<view class="page" wx:if="{{item}}">
+  <view class="card">
+    <view class="h">{{item.type}} · {{item.subtype}}</view>
+    <view class="st">{{item.status}}</view>
+    <view class="m" wx:if="{{item.createdAt}}">提交时间：{{item.fmtCreated}}</view>
+    <view class="m" wx:if="{{item.teacherComment}}">审批意见：{{item.teacherComment}}</view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">表单信息</view>
+    <view class="kv"><text class="k">说明</text><text class="v">{{item.form.reason}}</text></view>
+    <view class="kv" wx:if="{{item.form.startDate}}"><text class="k">开始</text><text class="v">{{item.form.startDate}}</text></view>
+    <view class="kv" wx:if="{{item.form.endDate}}"><text class="k">结束</text><text class="v">{{item.form.endDate}}</text></view>
+    <view class="kv" wx:if="{{item.form.extraNote}}"><text class="k">备注</text><text class="v">{{item.form.extraNote}}</text></view>
+  </view>
+
+  <view class="card" wx:if="{{item.attachments && item.attachments.length}}">
+    <view class="section-title">附件</view>
+    <view class="kv" wx:for="{{item.attachments}}" wx:key="name"><text class="v">{{item.name}}</text></view>
+  </view>
+
+  <view class="card">
+    <view class="section-title">流转记录</view>
+    <view class="log" wx:for="{{item.auditTrail}}" wx:key="at">
+      <view class="l1">{{item.actor}} · {{item.action}}</view>
+      <view class="l2">{{item.atText}}</view>
+      <view class="l3" wx:if="{{item.remark}}">{{item.remark}}</view>
+    </view>
+  </view>
+
+  <button
+    wx:if="{{item.status === '已驳回'}}"
+    class="re"
+    type="primary"
+    bindtap="reSubmit"
+  >
+    保留上次信息并修改后重提（演示）
+  </button>
+</view>

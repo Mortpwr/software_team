@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="section-title">批次（渠道统计口径见需求 7.3.4）</view>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <view class="t">{{item.title}}</view>
+    <view class="m">{{item.t}} · {{item.id}}</view>
+    <view class="ch" wx:for="{{item.channels}}" wx:for-item="ch" wx:key="name">
+      <text>{{ch.name}}</text>
+      <text class="muted">发 {{ch.sendOk}}/{{ch.sendFail}} · 达 {{ch.deliverOk}}/{{ch.deliverFail}} · 读 {{ch.read}}</text>
+    </view>
+  </view>
+
+  <view class="section-title">短信模拟记录（FR3-6a）</view>
+  <view class="card sms" wx:for="{{sms}}" wx:key="id">
+    <view class="t2">{{item.text}}</view>
+    <view class="m">受众 {{item.audience.length}} 人 · {{item.batchId}}</view>
+  </view>
+</view>

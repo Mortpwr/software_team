@@ -1,0 +1,38 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.t {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.t2 {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.m {
+  font-size: 22rpx;
+  color: #9ca3af;
+  margin-top: 6rpx;
+}
+
+.ch {
+  display: flex;
+  justify-content: space-between;
+  font-size: 22rpx;
+  padding: 8rpx 0;
+  border-top: 1rpx solid #f3f4f6;
+  margin-top: 8rpx;
+}
+
+.muted {
+  color: #6b7280;
+  max-width: 420rpx;
+  text-align: right;
+}
+
+.sms {
+  margin-bottom: 12rpx;
+}

@@ -1,0 +1,13 @@
+<view class="page" wx:if="{{item}}">
+  <view class="card">
+    <view class="t">{{item.title}}</view>
+    <view class="m">{{item.t}} · {{item.source}}</view>
+    <view class="tags">
+      <text class="tag tag-muted" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
+    </view>
+  </view>
+  <view class="card">
+    <view class="sum">{{item.summary}}</view>
+    <view class="body">{{item.content}}</view>
+  </view>
+</view>

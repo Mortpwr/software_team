@@ -1,0 +1,19 @@
+<view class="page" wx:if="{{plan}}">
+  <view class="card tip">按培养方案模块填写「已获学分」——演示本地比对链路；正式环境由成绩接口回填。</view>
+  <view class="card row" wx:for="{{editors}}" wx:key="key">
+    <view class="info">
+      <view class="n">{{item.name}}</view>
+      <view class="r">要求 {{item.required}} 学分</view>
+    </view>
+    <input
+      class="inp"
+      type="digit"
+      placeholder="已获"
+      value="{{item.earned}}"
+      data-key="{{item.key}}"
+      bindinput="onEarnedInput"
+    />
+  </view>
+  <button type="primary" bindtap="save">保存并返回学业分析</button>
+</view>
+<view wx:else class="empty-tip">未找到与你专业年级绑定的培养方案，请先在个人中心切换正确学号。</view>

@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="card tip">{{envTip}}</view>
+
+  <view class="card">
+    <view class="label">当前角色（用于工作台权限演示）</view>
+    <picker mode="selector" range="{{roleOptions}}" range-key="name" value="{{roleIndex}}" bindchange="onRoleChange">
+      <view class="pv">{{roleOptions[roleIndex].name}}</view>
+    </picker>
+    <view class="label mt">模拟登录学号（切换后会看到各自的站内信 / 办事 / 党团进度）</view>
+    <picker mode="selector" range="{{studentIds}}" value="{{studentIndex}}" bindchange="onStudentChange">
+      <view class="pv">{{studentIds[studentIndex]}}</view>
+    </picker>
+  </view>
+
+  <view class="card" wx:if="{{student}}">
+    <view class="av">{{student.name}}</view>
+    <view class="sid">学号 {{student.studentId}}</view>
+    <view class="kv"><text class="k">年级专业</text><text class="v">{{student.grade}} · {{student.major}}</text></view>
+    <view class="kv"><text class="k">班级</text><text class="v">{{student.className}}</text></view>
+    <view class="kv"><text class="k">民族</text><text class="v">{{student.nation}}</text></view>
+    <view class="kv"><text class="k">政治面貌</text><text class="v">{{student.politicalStatus}}</text></view>
+    <view class="kv">
+      <text class="k">手机</text>
+      <text class="v">{{student.phoneMasked || student.phone || '—'}}</text>
+    </view>
+    <view class="kv" wx:if="{{student.idCardMasked}}">
+      <text class="k">证件(脱敏)</text><text class="v">{{student.idCardMasked}}</text>
+    </view>
+    <view class="kv"><text class="k">导师</text><text class="v">{{student.tutor}}</text></view>
+  </view>
+
+  <view class="card actions">
+    <button size="mini" type="primary" bindtap="goMessages">站内消息</button>
+    <button size="mini" type="primary" bindtap="goWorkbench">工作台（老师）</button>
+    <button size="mini" bindtap="goPlan">学业数据</button>
+  </view>
+
+  <view class="card actions">
+    <view class="p">
+      正式环境：wx.login + 服务端会话。此处「重置本地数据库」会重新写入 core/seed-data
+      的关系型种子并可验证全链路。
+    </view>
+    <button size="mini" bindtap="resetLocalDb">重置本地数据库</button>
+    <button size="mini" bindtap="loginDemo">恢复默认学号/学生角色</button>
+  </view>
+</view>

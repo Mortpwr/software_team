@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/home/home",
+    "pages/knowledge/knowledge",
+    "pages/knowledge-detail/knowledge-detail",
+    "pages/party/party",
+    "pages/apply/list/list",
+    "pages/apply/create/create",
+    "pages/apply/detail/detail",
+    "pages/notices/notices",
+    "pages/notice-detail/notice-detail",
+    "pages/honors/honors",
+    "pages/profile/profile",
+    "pages/academic/academic",
+    "pages/academic/plan/plan",
+    "pages/messages/inbox/inbox",
+    "pages/messages/detail/detail",
+    "pages/workbench/home/home",
+    "pages/workbench/approve/approve",
+    "pages/workbench/publish/publish",
+    "pages/workbench/batches/batches",
+    "pages/workbench/misses/misses",
+    "pages/workbench/logs/logs",
+    "pages/workbench/party-mgmt/party-mgmt"
+  ],
+
+  "window": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "学院学生服务",
+    "navigationBarBackgroundColor": "#1a5fb4",
+    "backgroundColor": "#f4f6f9",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#6b7280",
+    "selectedColor": "#1a5fb4",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/home/home", "text": "首页" },
+      { "pagePath": "pages/knowledge/knowledge", "text": "政策" },
+      { "pagePath": "pages/party/party", "text": "党团" },
+      { "pagePath": "pages/apply/list/list", "text": "办事" },
+      { "pagePath": "pages/profile/profile", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "usingComponents": {}
+}

@@ -1,0 +1,63 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.actions button {
+  margin: 0;
+}
+
+.t {
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-bottom: 12rpx;
+}
+
+.risk {
+  font-size: 26rpx;
+  color: #b45309;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.p {
+  font-size: 26rpx;
+  color: #374151;
+  line-height: 1.55;
+}
+
+.mod {
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f3f4f6;
+}
+
+.m1 {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.m2 {
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-top: 8rpx;
+}
+
+.sg {
+  font-size: 26rpx;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f3f4f6;
+  line-height: 1.5;
+  color: #1f2937;
+}
+
+.up {
+  font-size: 24rpx;
+  color: #4b5563;
+  padding: 8rpx 0;
+}

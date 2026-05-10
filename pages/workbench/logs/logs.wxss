@@ -1,0 +1,24 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.row {
+  margin-bottom: 14rpx;
+}
+
+.t {
+  font-size: 22rpx;
+  color: #9ca3af;
+}
+
+.a {
+  font-size: 24rpx;
+  color: #6b7280;
+  margin: 6rpx 0;
+}
+
+.act {
+  font-size: 26rpx;
+  color: #111827;
+  font-weight: 600;
+}

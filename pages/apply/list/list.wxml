@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="toolbar card">
+    <button type="primary" size="mini" bindtap="goCreate">发起申请</button>
+    <text class="hint">覆盖请假、盖章、证明等 P0 办事闭环（演示数据见 mock）</text>
+  </view>
+
+  <block wx:if="{{list.length}}">
+    <view
+      class="card item"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="openDetail"
+    >
+      <view class="row">
+        <text class="t">{{item.type}} · {{item.subtype}}</text>
+        <text class="status">{{item.status}}</text>
+      </view>
+      <view class="m">{{item.createdText}}</view>
+    </view>
+  </block>
+  <view wx:else class="empty-tip">暂无申请记录，点击「发起申请」体验流程。</view>
+</view>

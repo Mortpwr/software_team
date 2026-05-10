@@ -1,0 +1,38 @@
+<view class="page">
+  <view class="card filt">
+    <view class="row">
+      <text class="lab">年份</text>
+      <picker mode="selector" range="{{years}}" value="{{yearIndex}}" bindchange="onYearChange">
+        <view class="pv">{{years[yearIndex]}}</view>
+      </picker>
+    </view>
+    <view class="row">
+      <text class="lab">类别</text>
+      <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="pv">{{categories[categoryIndex]}}</view>
+      </picker>
+    </view>
+    <view class="row">
+      <input
+        class="inp"
+        placeholder="专业关键词，如：软件工程"
+        value="{{majorKeyword}}"
+        bindinput="onMajorInput"
+        confirm-type="search"
+        bindconfirm="searchMajor"
+      />
+      <button size="mini" type="primary" bindtap="searchMajor">筛选</button>
+    </view>
+  </view>
+
+  <block wx:for="{{list}}" wx:key="id">
+    <view class="card h">
+      <view class="ht">{{item.title}}</view>
+      <view class="hm">{{item.winner}} · {{item.grade}} · {{item.major}}</view>
+      <view class="hy">{{item.year}} · {{item.category}}</view>
+      <view class="hi">{{item.intro}}</view>
+    </view>
+  </block>
+
+  <view wx:if="{{!list.length}}" class="empty-tip">无匹配荣誉条目（演示数据较少，可清空筛选重试）</view>
+</view>

@@ -1,0 +1,7 @@
+<view class="page">
+  <view class="card row" wx:for="{{list}}" wx:key="id">
+    <view class="t">{{item.t}}</view>
+    <view class="a">{{item.role}} · {{item.actorId}}</view>
+    <view class="act">{{item.action}} → {{item.target}}</view>
+  </view>
+</view>

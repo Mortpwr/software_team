@@ -1,0 +1,15 @@
+<view class="page">
+  <view class="card bar">未读 {{unread}} · 多渠道触达状态在详情页查看</view>
+  <view
+    class="card item {{item.unread ? 'unread' : ''}}"
+    wx:for="{{list}}"
+    wx:key="id"
+    data-id="{{item.id}}"
+    bindtap="open"
+  >
+    <view class="t">{{item.title}}</view>
+    <view class="s">{{item.summary}}</view>
+    <view class="m">{{item.t}}</view>
+  </view>
+  <view wx:if="{{!list.length}}" class="empty-tip">暂无消息；可在工作台发布后自动生成收件箱记录。</view>
+</view>

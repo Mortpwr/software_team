@@ -1,0 +1,56 @@
+.page {
+  padding: 16rpx 16rpx 48rpx;
+}
+
+.tabs {
+  white-space: nowrap;
+  margin-bottom: 16rpx;
+}
+
+.tab {
+  display: inline-block;
+  padding: 12rpx 20rpx;
+  margin-right: 12rpx;
+  border-radius: 999rpx;
+  background: #e5e7eb;
+  font-size: 24rpx;
+  color: #4b5563;
+}
+
+.tab.on {
+  background: #1a5fb4;
+  color: #fff;
+  font-weight: 600;
+}
+
+.item {
+  margin-bottom: 16rpx;
+}
+
+.h {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.m {
+  font-size: 22rpx;
+  color: #6b7280;
+  margin: 8rpx 0;
+}
+
+.st {
+  font-size: 24rpx;
+  color: #1a5fb4;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+}
+
+.btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.btns button {
+  margin: 0;
+}

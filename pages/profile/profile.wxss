@@ -1,0 +1,74 @@
+.page {
+  padding: 24rpx 24rpx 140rpx;
+}
+
+.tip {
+  font-size: 24rpx;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 20rpx;
+}
+
+.av {
+  font-size: 40rpx;
+  font-weight: 800;
+  margin-bottom: 8rpx;
+}
+
+.sid {
+  font-size: 24rpx;
+  color: #6b7280;
+  margin-bottom: 16rpx;
+}
+
+.kv {
+  display: flex;
+  gap: 16rpx;
+  padding: 14rpx 0;
+  border-top: 1rpx solid #f3f4f6;
+  font-size: 26rpx;
+}
+
+.k {
+  width: 160rpx;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.v {
+  flex: 1;
+  color: #1f2937;
+}
+
+.actions {
+  margin-top: 20rpx;
+}
+
+.actions .p {
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+}
+
+.actions button {
+  margin-right: 12rpx;
+  margin-top: 8rpx;
+}
+
+.label {
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.mt {
+  margin-top: 18rpx;
+}
+
+.pv {
+  padding: 16rpx 20rpx;
+  background: #f9fafb;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}

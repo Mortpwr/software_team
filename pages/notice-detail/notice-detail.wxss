@@ -1,0 +1,33 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.t {
+  font-size: 34rpx;
+  font-weight: 800;
+  margin-bottom: 10rpx;
+}
+
+.m {
+  font-size: 24rpx;
+  color: #9ca3af;
+  margin-bottom: 12rpx;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.sum {
+  font-size: 28rpx;
+  color: #374151;
+  margin-bottom: 16rpx;
+  line-height: 1.5;
+}
+
+.body {
+  font-size: 28rpx;
+  line-height: 1.65;
+}

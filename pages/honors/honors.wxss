@@ -1,0 +1,68 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.filt {
+  margin-bottom: 20rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.row:last-child {
+  margin-bottom: 0;
+}
+
+.lab {
+  width: 100rpx;
+  font-size: 26rpx;
+  color: #6b7280;
+}
+
+.pv {
+  flex: 1;
+  padding: 16rpx 20rpx;
+  background: #f9fafb;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+}
+
+.inp {
+  flex: 1;
+  padding: 16rpx 20rpx;
+  background: #f9fafb;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+}
+
+.h {
+  margin-bottom: 20rpx;
+}
+
+.ht {
+  font-size: 30rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.hm {
+  font-size: 24rpx;
+  color: #4b5563;
+  margin-bottom: 6rpx;
+}
+
+.hy {
+  font-size: 22rpx;
+  color: #9ca3af;
+  margin-bottom: 10rpx;
+}
+
+.hi {
+  font-size: 26rpx;
+  color: #374151;
+  line-height: 1.5;
+}

@@ -1,0 +1,21 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.tip {
+  font-size: 24rpx;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+}
+
+.k {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.m {
+  font-size: 24rpx;
+  color: #9ca3af;
+  margin-top: 8rpx;
+}

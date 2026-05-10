@@ -1,0 +1,32 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.t {
+  font-size: 34rpx;
+  font-weight: 800;
+  margin-bottom: 10rpx;
+}
+
+.m {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+.ch {
+  display: flex;
+  justify-content: space-between;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #f3f4f6;
+  font-size: 26rpx;
+}
+
+.cs {
+  color: #6b7280;
+}
+
+.body {
+  font-size: 28rpx;
+  line-height: 1.65;
+  color: #1f2937;
+}

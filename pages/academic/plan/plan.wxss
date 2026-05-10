@@ -1,0 +1,46 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.tip {
+  font-size: 24rpx;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 20rpx;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.info {
+  flex: 1;
+}
+
+.n {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.r {
+  font-size: 22rpx;
+  color: #9ca3af;
+  margin-top: 6rpx;
+}
+
+.inp {
+  width: 160rpx;
+  text-align: center;
+  padding: 16rpx;
+  background: #f9fafb;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+button {
+  margin-top: 24rpx;
+}

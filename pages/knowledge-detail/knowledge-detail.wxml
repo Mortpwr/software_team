@@ -1,0 +1,33 @@
+<view class="page" wx:if="{{item}}">
+  <view class="card">
+    <view class="title">{{item.title}}</view>
+    <view class="row">
+      <text class="tag">{{item.category}}</text>
+      <text class="meta" wx:if="{{item.updatedText}}">更新 {{item.updatedText}}</text>
+    </view>
+  </view>
+
+  <view class="card block">
+    <view class="label">标准答案 / 办事说明</view>
+    <text class="body">{{item.body}}</text>
+
+    <block wx:if="{{item.links && item.links.length}}">
+      <view class="label mt">官方链接</view>
+      <view wx:for="{{item.links}}" wx:for-item="lk" wx:key="url" class="link-row">
+        <text class="link-name">{{lk.name}}</text>
+        <text class="link-url">{{lk.url}}</text>
+      </view>
+    </block>
+
+    <block wx:if="{{item.attachments && item.attachments.length}}">
+      <view class="label mt">附件</view>
+      <view wx:for="{{item.attachments}}" wx:for-item="at" wx:key="name" class="link-row">
+        <text>{{at.name}}</text>
+      </view>
+    </block>
+
+    <view wx:if="{{item.sensitiveHint}}" class="warn mt">
+      本条涉及敏感信息，仅展示摘要。完整材料请通过学院指定官方渠道获取。
+    </view>
+  </view>
+</view>

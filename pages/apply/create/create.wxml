@@ -1,0 +1,73 @@
+<view class="page">
+  <view class="card">
+    <view class="label">申请类型</view>
+    <picker mode="selector" range="{{mainTypes}}" value="{{mainIndex}}" bindchange="onMainTypeChange">
+      <view class="picker">{{mainTypes[mainIndex]}}</view>
+    </picker>
+
+    <block wx:if="{{mainTypes[mainIndex] === '证明申请'}}">
+      <view class="label mt">证明子类</view>
+      <picker mode="selector" range="{{proofSubs}}" value="{{proofSubIndex}}" bindchange="onProofSubChange">
+        <view class="picker">{{proofSubs[proofSubIndex]}}</view>
+      </picker>
+    </block>
+
+    <block wx:if="{{mainTypes[mainIndex] === '请假申请'}}">
+      <view class="label mt">请假类型</view>
+      <picker mode="selector" range="{{leaveSubs}}" value="{{leaveSubIndex}}" bindchange="onLeaveSubChange">
+        <view class="picker">{{leaveSubs[leaveSubIndex]}}</view>
+      </picker>
+      <view class="label mt">起止日期</view>
+      <view class="row-d">
+        <picker mode="date" value="{{startDate}}" bindchange="onStartChange">
+          <view class="picker sm">{{startDate || '开始日期'}}</view>
+        </picker>
+        <text class="sep">至</text>
+        <picker mode="date" value="{{endDate}}" bindchange="onEndChange">
+          <view class="picker sm">{{endDate || '结束日期'}}</view>
+        </picker>
+      </view>
+    </block>
+
+    <block wx:if="{{mainTypes[mainIndex] === '盖章申请'}}">
+      <view class="label mt">用印子类</view>
+      <picker mode="selector" range="{{sealSubs}}" value="{{sealSubIndex}}" bindchange="onSealSubChange">
+        <view class="picker">{{sealSubs[sealSubIndex]}}</view>
+      </picker>
+    </block>
+
+    <view class="label mt">申请说明</view>
+    <textarea
+      class="ta"
+      placeholder="请填写事由；涉密内容请备注并转线下流程（见需求 FR4-10）"
+      value="{{reason}}"
+      maxlength="500"
+      bindinput="onReasonInput"
+    />
+
+    <view class="label mt">补充备注（可选）</view>
+    <textarea
+      class="ta sm"
+      placeholder="例如：需要英文版、份数、线下交接说明等"
+      value="{{extraNote}}"
+      maxlength="300"
+      bindinput="onExtraInput"
+    />
+  </view>
+
+  <view class="card">
+    <view class="label">附件</view>
+    <view class="tip">
+      盖章申请：必须上传附件。证明申请：附件可选。首版演示使用「从聊天选择文件」能力临时选取。
+    </view>
+    <button size="mini" bindtap="chooseFile">选择文件</button>
+    <view class="files" wx:if="{{attachments.length}}">
+      <view class="f" wx:for="{{attachments}}" wx:key="path">
+        <text class="fn">{{item.name}}</text>
+        <text class="del" data-index="{{index}}" bindtap="removeFile">移除</text>
+      </view>
+    </view>
+  </view>
+
+  <button class="submit" type="primary" bindtap="submit">提交审批</button>
+</view>

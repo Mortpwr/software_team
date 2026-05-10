@@ -1,0 +1,56 @@
+<view class="wrap">
+  <view class="hero card">
+    <view class="hero-title">学院学生综合服务</view>
+    <view class="hero-sub">本地持久化 · 办事审批闭环 · 通知批次 fan-out · 学业核对 · 党团节点</view>
+  </view>
+
+  <view class="msg-bar card" bindtap="goMessages">
+    站内信 · 未读 {{unread}} 封（多渠道口径可点入查看）
+  </view>
+
+  <view class="grid">
+    <view class="grid-item card" bindtap="goKnowledge">
+      <view class="g-title">政策与模板</view>
+      <view class="g-desc">关键词 + 分类 + 未命中词沉淀</view>
+    </view>
+    <view class="grid-item card" bindtap="goCreateApply">
+      <view class="g-title">发起办事申请</view>
+      <view class="g-desc">证明 / 请假 / 盖章</view>
+    </view>
+    <view class="grid-item card" bindtap="goNotices">
+      <view class="g-title">通知公告</view>
+      <view class="g-desc">标签、来源与全文</view>
+    </view>
+    <view class="grid-item card" bindtap="goHonors">
+      <view class="g-title">荣誉展示</view>
+      <view class="g-desc">按年/专业/类别</view>
+    </view>
+    <view class="grid-item card grid-wide" bindtap="goAcademic">
+      <view class="g-title">学业分析</view>
+      <view class="g-desc">培养方案比对 + 自报学分维护 + 成绩单元数据登记</view>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">近期通知</text>
+      <text class="link" bindtap="goNotices">全部</text>
+    </view>
+    <block wx:if="{{loaded && notices.length}}">
+      <view
+        class="card notice"
+        wx:for="{{notices}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="openNotice"
+      >
+        <view class="n-title">{{item.title}}</view>
+        <view class="n-meta">{{item.publishedAtText}} · {{item.source}}</view>
+        <view class="n-tags">
+          <text class="tag tag-muted" wx:for="{{item.tags}}" wx:for-item="tg" wx:key="*this">{{tg}}</text>
+        </view>
+      </view>
+    </block>
+    <view wx:elif="{{loaded}}" class="empty-tip">暂无通知</view>
+  </view>
+</view>

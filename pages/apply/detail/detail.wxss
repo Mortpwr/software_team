@@ -1,0 +1,68 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.h {
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.st {
+  font-size: 26rpx;
+  color: #1a5fb4;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.m {
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.kv {
+  display: flex;
+  gap: 16rpx;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f3f4f6;
+  font-size: 26rpx;
+}
+
+.k {
+  width: 120rpx;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.v {
+  flex: 1;
+  color: #1f2937;
+  word-break: break-all;
+}
+
+.log {
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f3f4f6;
+}
+
+.l1 {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.l2 {
+  font-size: 22rpx;
+  color: #9ca3af;
+  margin-top: 6rpx;
+}
+
+.l3 {
+  font-size: 24rpx;
+  color: #4b5563;
+  margin-top: 8rpx;
+}
+
+.re {
+  margin-top: 24rpx;
+}

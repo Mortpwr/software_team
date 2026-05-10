@@ -1,0 +1,8 @@
+<view class="page">
+  <view class="card tip">来源于学生端检索无结果事件（FR1-7 基础能力）。据此补充知识库条目而非写死演示答案。</view>
+  <view class="card" wx:for="{{list}}" wx:key="id">
+    <view class="k">{{item.keyword}}</view>
+    <view class="m">次数 {{item.count}} · 最近 {{item.t}}</view>
+  </view>
+  <view wx:if="{{!list.length}}" class="empty-tip">暂无未命中记录</view>
+</view>

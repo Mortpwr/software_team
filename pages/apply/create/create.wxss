@@ -1,0 +1,88 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.label {
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+  color: #374151;
+}
+
+.mt {
+  margin-top: 20rpx;
+}
+
+.picker {
+  padding: 20rpx;
+  background: #f9fafb;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+}
+
+.picker.sm {
+  flex: 1;
+  text-align: center;
+}
+
+.row-d {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.sep {
+  color: #9ca3af;
+  font-size: 24rpx;
+}
+
+.ta {
+  min-height: 160rpx;
+  width: 100%;
+  padding: 16rpx;
+  box-sizing: border-box;
+  border-radius: 12rpx;
+  background: #f9fafb;
+  font-size: 28rpx;
+}
+
+.ta.sm {
+  min-height: 120rpx;
+}
+
+.tip {
+  font-size: 22rpx;
+  color: #6b7280;
+  line-height: 1.45;
+  margin-bottom: 12rpx;
+}
+
+.files {
+  margin-top: 16rpx;
+}
+
+.f {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f3f4f6;
+}
+
+.fn {
+  font-size: 26rpx;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.del {
+  font-size: 24rpx;
+  color: #b91c1c;
+  margin-left: 16rpx;
+}
+
+.submit {
+  margin-top: 28rpx;
+}

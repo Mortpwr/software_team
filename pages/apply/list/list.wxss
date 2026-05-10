@@ -1,0 +1,46 @@
+.page {
+  padding: 24rpx 24rpx 140rpx;
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.hint {
+  font-size: 22rpx;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.item {
+  margin-bottom: 16rpx;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.t {
+  font-size: 28rpx;
+  font-weight: 600;
+  flex: 1;
+}
+
+.status {
+  font-size: 24rpx;
+  color: #1a5fb4;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.m {
+  font-size: 22rpx;
+  color: #9ca3af;
+}

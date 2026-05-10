@@ -1,0 +1,16 @@
+<view class="page">
+  <view class="card intro">
+    学院范围精准推送（标签、画像、批次统计）由管理端维护；学生端可查看通知并进入「通知详情」。
+  </view>
+
+  <block wx:for="{{list}}" wx:key="id">
+    <view class="card n" data-id="{{item.id}}" bindtap="open">
+      <view class="t">{{item.title}}</view>
+      <view class="m">{{item.publishedText}} · {{item.source}}</view>
+      <view class="tags">
+        <text class="tag tag-muted" wx:for="{{item.tags}}" wx:for-item="tg" wx:key="*this">{{tg}}</text>
+      </view>
+      <view class="sum">{{item.summary}}</view>
+    </view>
+  </block>
+</view>

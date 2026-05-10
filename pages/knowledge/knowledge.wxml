@@ -1,0 +1,42 @@
+<view class="page">
+  <view class="search card">
+    <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+      <view class="cat">分类：{{categories[categoryIndex]}} ▾</view>
+    </picker>
+    <view class="row-inp">
+      <input
+        class="inp"
+        placeholder="输入关键词，如：奖助学金、宿舍、休学"
+        confirm-type="search"
+        value="{{keyword}}"
+        bindinput="onKeywordInput"
+        bindconfirm="onSearchConfirm"
+      />
+      <button class="btn" size="mini" type="primary" bindtap="onSearchConfirm">搜索</button>
+    </view>
+  </view>
+
+  <view class="section-title">政策条目（标准答案优先）</view>
+  <block wx:if="{{list.length}}">
+    <view class="card item" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail">
+      <view class="row">
+        <text class="item-title">{{item.title}}</text>
+        <text class="tag">{{item.category}}</text>
+      </view>
+      <view class="summary">{{item.summary}}</view>
+      <view class="meta">更新：{{item.updatedText}}</view>
+    </view>
+  </block>
+  <view wx:else class="empty-tip">
+    未命中条目：已写入「高频未命中词」队列（工作台可查看），也可尝试更换关键词或清空分类。
+  </view>
+
+  <view class="section-title">常用模板下载</view>
+  <view class="card tpl" wx:for="{{templates}}" wx:key="id">
+    <view>
+      <view class="tpl-name">{{item.name}}</view>
+      <view class="tpl-scene">{{item.scene}}</view>
+    </view>
+    <button size="mini" disabled>预览（联调后开放）</button>
+  </view>
+</view>

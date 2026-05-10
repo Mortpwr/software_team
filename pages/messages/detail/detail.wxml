@@ -1,0 +1,17 @@
+<view class="page" wx:if="{{msg}}">
+  <view class="card">
+    <view class="t">{{msg.title}}</view>
+    <view class="m">{{msg.t}} · 批次 {{msg.batchId}}</view>
+  </view>
+  <view class="card">
+    <view class="section-title">渠道与统计口径（需求 7.3.4）</view>
+    <view class="ch" wx:for="{{msg.channels}}" wx:key="name">
+      <text class="cn">{{item.name}}</text>
+      <text class="cs">{{item.state}} / {{item.detail}}</text>
+    </view>
+  </view>
+  <view class="card" wx:if="{{notice}}">
+    <view class="section-title">通知正文</view>
+    <view class="body">{{notice.content}}</view>
+  </view>
+</view>

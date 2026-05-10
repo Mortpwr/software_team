@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="card">
+    <view class="label">标题</view>
+    <input class="inp" value="{{title}}" bindinput="onTitle" placeholder="通知标题" />
+    <view class="label mt">摘要</view>
+    <input class="inp" value="{{summary}}" bindinput="onSummary" placeholder="列表展示摘要" />
+    <view class="label mt">正文</view>
+    <textarea class="ta" value="{{content}}" bindinput="onContent" placeholder="支持多段落，站内信关联全文" />
+    <view class="label mt">标签（逗号分隔）</view>
+    <input class="inp" value="{{tagsInput}}" bindinput="onTags" />
+    <view class="label mt">受众规则</view>
+    <picker mode="selector" range="{{ruleKinds}}" value="{{ruleKindIndex}}" bindchange="onRuleKind">
+      <view class="picker">{{ruleKinds[ruleKindIndex]}}</view>
+    </picker>
+    <block wx:if="{{ruleKindIndex === 1}}">
+      <input class="inp mt" value="{{grade}}" bindinput="onGrade" placeholder="年级，如 2024级" />
+    </block>
+    <block wx:if="{{ruleKindIndex === 2}}">
+      <input class="inp mt" value="{{majorKw}}" bindinput="onMajor" placeholder="专业包含关键字" />
+    </block>
+  </view>
+  <button type="primary" bindtap="submit">生成批次并推送（本地模拟渠道）</button>
+</view>

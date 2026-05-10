@@ -1,0 +1,34 @@
+.page {
+  padding: 24rpx 24rpx 48rpx;
+}
+
+.bar {
+  font-size: 26rpx;
+  margin-bottom: 16rpx;
+}
+
+.item {
+  margin-bottom: 16rpx;
+}
+
+.unread {
+  border-left: 8rpx solid #1a5fb4;
+}
+
+.t {
+  font-size: 28rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.s {
+  font-size: 24rpx;
+  color: #4b5563;
+  line-height: 1.45;
+  margin-bottom: 8rpx;
+}
+
+.m {
+  font-size: 22rpx;
+  color: #9ca3af;
+}

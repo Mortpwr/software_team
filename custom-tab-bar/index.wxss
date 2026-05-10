@@ -1,0 +1,38 @@
+.bar {
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  height: calc(112rpx + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  background: #fff;
+  border-top: 1rpx solid #e5e7eb;
+  box-shadow: 0 -8rpx 24rpx rgba(15, 23, 42, 0.06);
+}
+
+.item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
+.item-on {
+  color: #1a5fb4;
+  font-weight: 600;
+}
+
+.ico {
+  font-size: 28rpx;
+  margin-bottom: 4rpx;
+  line-height: 1;
+}
+
+.txt {
+  line-height: 1;
+}

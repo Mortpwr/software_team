@@ -1,0 +1,24 @@
+<view class="page">
+  <scroll-view scroll-x class="tabs">
+    <text
+      class="tab {{tabIndex === index ? 'on' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="*this"
+      data-i="{{index}}"
+      bindtap="onTab"
+    >{{item}}</text>
+  </scroll-view>
+
+  <view class="card item" wx:for="{{list}}" wx:key="id">
+    <view class="h">{{item.type}} · {{item.subtype}}</view>
+    <view class="m">{{item.stuName}} {{item.studentId}} · {{item.t}}</view>
+    <view class="st">{{item.status}}</view>
+    <view class="btns">
+      <button wx:if="{{item.status === '审批中'}}" size="mini" type="primary" data-id="{{item.id}}" bindtap="doApprove">通过</button>
+      <button wx:if="{{item.status === '审批中'}}" size="mini" data-id="{{item.id}}" bindtap="doReject">驳回</button>
+      <button wx:if="{{item.status === '已通过' || item.status === '已驳回'}}" size="mini" data-id="{{item.id}}" bindtap="doRevoke">撤回</button>
+      <button wx:if="{{item.status === '已通过' || item.status === '已驳回'}}" size="mini" data-id="{{item.id}}" bindtap="doReapprove">重批</button>
+    </view>
+  </view>
+  <view wx:if="{{!list.length}}" class="empty-tip">当前筛选无申请</view>
+</view>

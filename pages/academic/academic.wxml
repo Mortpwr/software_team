@@ -1,0 +1,40 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="empty-tip">加载学业核对数据…</view>
+  <block wx:elif="{{report}}">
+    <view class="card actions">
+      <button size="mini" type="primary" bindtap="goPlan">维护各模块已获学分</button>
+      <button size="mini" bindtap="mockUpload">登记成绩单上传（仅占位元数据）</button>
+    </view>
+
+    <view class="card" wx:if="{{!report.ok}}">
+      <view class="t">学业核对不可用</view>
+      <view class="p">{{report.message}}</view>
+    </view>
+
+    <block wx:if="{{report.ok}}">
+      <view class="card">
+        <view class="t">培养方案比对（本地规则引擎）</view>
+        <view class="risk">综合风险：{{report.riskLevel}}</view>
+        <view class="p">说明：未实现 PDF 解析时，由学生在「学业数据」页自报已获学分；后端接入后可替换为解析结果。</view>
+      </view>
+
+      <view class="card" wx:if="{{report.modules && report.modules.length}}">
+        <view class="section-title">模块学分缺口</view>
+        <view class="mod" wx:for="{{report.modules}}" wx:key="key">
+          <view class="m1">{{item.name}} · 风险 {{item.risk}}</view>
+          <view class="m2">要求 {{item.required}} · 已获得 {{item.earned}} · 缺口 {{item.gap}}</view>
+        </view>
+      </view>
+
+      <view class="card" wx:if="{{report.suggestions && report.suggestions.length}}">
+        <view class="section-title">修读建议（非选课引擎）</view>
+        <view class="sg" wx:for="{{report.suggestions}}" wx:key="focus">{{item.hint}}</view>
+      </view>
+
+      <view class="card" wx:if="{{report.uploads && report.uploads.length}}">
+        <view class="section-title">上传记录</view>
+        <view class="up" wx:for="{{report.uploads}}" wx:key="at">{{item.name}} · {{item.note}}</view>
+      </view>
+    </block>
+  </block>
+</view>
