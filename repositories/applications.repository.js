@@ -58,6 +58,24 @@ function createApp(payload) {
   return app;
 }
 
+function saveDraft(studentId, draft) {
+  db.withDb((d) => {
+    d.applicationDraftsByStudent = d.applicationDraftsByStudent || {};
+    d.applicationDraftsByStudent[studentId] = {
+      ...draft,
+      updatedAt: Date.now(),
+    };
+    return d;
+  });
+  audit.append({ actorId: studentId, role: 'student', action: 'application_draft_save', target: studentId });
+  return { ok: true };
+}
+
+function getDraft(studentId) {
+  const d = db.readDb();
+  return (d.applicationDraftsByStudent && d.applicationDraftsByStudent[studentId]) || null;
+}
+
 function assertTeacher(actor) {
   if (!actor || actor.role !== 'teacher') {
     throw new Error('FORBIDDEN');
@@ -131,11 +149,23 @@ function reapprove(id, { comment, newStatus, actorId, role }) {
   return getById(id);
 }
 
+function clearDraft(studentId) {
+  db.withDb((d) => {
+    d.applicationDraftsByStudent = d.applicationDraftsByStudent || {};
+    delete d.applicationDraftsByStudent[studentId];
+    return d;
+  });
+  return { ok: true };
+}
+
 module.exports = {
   listForStudent,
   listAll,
   getById,
   createApp,
+  saveDraft,
+  getDraft,
+  clearDraft,
   approve,
   reject,
   revoke,

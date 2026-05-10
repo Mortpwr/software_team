@@ -1,0 +1,34 @@
+<view class="page">
+  <view wx:if="{{forbidden}}" class="card warn">
+    当前看板仅供「学院领导」角色访问。请前往「我的」切换身份后重试。
+  </view>
+
+  <block wx:elif="{{dash}}">
+    <view class="card">
+      <view class="g">在册学生 {{dash.students}}</view>
+      <view class="g">政策条目 {{dash.knowledgeCount}}</view>
+      <view class="g">通知 {{dash.noticeCount}}</view>
+      <view class="g">待审批办事 {{dash.pendingApps}}</view>
+      <view class="g">通知批次 {{dash.batches}}</view>
+      <view class="g">学业高风险人数（演示口径） {{dash.academicHighRiskStudents}}</view>
+    </view>
+
+    <view class="section-title">办事状态分布</view>
+    <view wx:if="{{!dash.statusRows.length}}" class="empty-tip">暂无办事记录</view>
+    <view class="card" wx:else>
+      <view class="g" wx:for="{{dash.statusRows}}" wx:key="label">{{item.label}}：{{item.count}}</view>
+    </view>
+
+    <view class="section-title">知识库未命中词 Top</view>
+    <view wx:if="{{!dash.missKeywordsTop.length}}" class="empty-tip">暂无</view>
+    <view class="card" wx:for="{{dash.missKeywordsTop}}" wx:key="keyword">
+      <view class="g">{{item.keyword}} · 次数 {{item.count}}</view>
+    </view>
+
+    <view class="card meta" wx:if="{{dash.lastResetText}}">
+      <view class="g muted">上次种子重置（本地）：{{dash.lastResetText}}</view>
+    </view>
+
+    <button class="cell" bindtap="goLogs">查看审计日志（只读）</button>
+  </block>
+</view>

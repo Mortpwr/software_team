@@ -86,3 +86,13 @@
 .submit {
   margin-top: 28rpx;
 }
+
+.btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+
+.btns button {
+  flex: 1;
+}

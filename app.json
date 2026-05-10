@@ -3,7 +3,13 @@
     "pages/home/home",
     "pages/knowledge/knowledge",
     "pages/knowledge-detail/knowledge-detail",
+    "pages/knowledge/favorites/favorites",
+    "pages/knowledge/recent/recent",
+    "pages/knowledge/trending/trending",
     "pages/party/party",
+    "pages/league/league",
+    "pages/theory/exam/exam",
+    "pages/leader/dashboard/dashboard",
     "pages/apply/list/list",
     "pages/apply/create/create",
     "pages/apply/detail/detail",
@@ -11,6 +17,8 @@
     "pages/notice-detail/notice-detail",
     "pages/honors/honors",
     "pages/profile/profile",
+    "pages/profile/extension/extension",
+    "pages/help/trace/trace",
     "pages/academic/academic",
     "pages/academic/plan/plan",
     "pages/messages/inbox/inbox",
@@ -21,8 +29,9 @@
     "pages/workbench/batches/batches",
     "pages/workbench/misses/misses",
     "pages/workbench/logs/logs",
-    "pages/workbench/party-mgmt/party-mgmt"
-  ],
+    "pages/workbench/party-mgmt/party-mgmt",
+    "pages/workbench/league-mgmt/league-mgmt"
+  ],
 
   "window": {
     "navigationBarTextStyle": "white",

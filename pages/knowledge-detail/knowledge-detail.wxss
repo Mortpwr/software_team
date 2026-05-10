@@ -16,6 +16,10 @@
   gap: 16rpx;
 }
 
+.fav-btn {
+  margin-top: 20rpx;
+}
+
 .meta {
   font-size: 22rpx;
   color: #9ca3af;

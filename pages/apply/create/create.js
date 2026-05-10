@@ -29,10 +29,24 @@ Page({
       } catch (e) {
         /* ignore */
       }
+    } else {
+      this.hydrateDraftFromServer();
     }
   },
 
-  applyDraft(draft) {
+  async hydrateDraftFromServer() {
+    try {
+      const draft = await request({ path: '/applications/draft' });
+      if (draft && draft.type) {
+        this.applyDraft(draft, true);
+        wx.showToast({ title: '已恢复本地草稿', icon: 'none' });
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  },
+
+  applyDraft(draft, silent) {
     const idx = MAIN_TYPES.indexOf(draft.type);
     const base = {
       draftFromReject: draft,
@@ -59,7 +73,7 @@ Page({
     }
 
     this.setData(base);
-    wx.showToast({ title: '已载入上次填写内容', icon: 'none' });
+    if (!silent) wx.showToast({ title: '已载入上次填写内容', icon: 'none' });
   },
 
   onMainTypeChange(e) {
@@ -110,6 +124,32 @@ Page({
     const attachments = [...this.data.attachments];
     attachments.splice(index, 1);
     this.setData({ attachments });
+  },
+
+  async saveDraft() {
+    const type = MAIN_TYPES[this.data.mainIndex];
+    const subtype = this.currentSubtype();
+    const form = {
+      reason: this.data.reason,
+      startDate: this.data.startDate,
+      endDate: this.data.endDate,
+      extraNote: this.data.extraNote,
+    };
+    try {
+      await request({
+        path: '/applications/draft',
+        method: 'POST',
+        data: {
+          type,
+          subtype,
+          form,
+          attachments: this.data.attachments.map((a) => ({ name: a.name, path: a.path })),
+        },
+      });
+      wx.showToast({ title: '草稿已保存', icon: 'success' });
+    } catch (e) {
+      wx.showToast({ title: '保存失败', icon: 'none' });
+    }
   },
 
   currentSubtype() {

@@ -25,9 +25,21 @@
       <view class="g-title">荣誉展示</view>
       <view class="g-desc">按年/专业/类别</view>
     </view>
+    <view class="grid-item card" bindtap="goLeague">
+      <view class="g-title">入团进度</view>
+      <view class="g-desc">共青团员发展流程与待办</view>
+    </view>
+    <view class="grid-item card" bindtap="goTheory">
+      <view class="g-title">理论自测</view>
+      <view class="g-desc">党建知识选择题（本地记分）</view>
+    </view>
     <view class="grid-item card grid-wide" bindtap="goAcademic">
       <view class="g-title">学业分析</view>
       <view class="g-desc">培养方案比对 + 自报学分维护 + 成绩单元数据登记</view>
+    </view>
+    <view class="grid-item card grid-wide" bindtap="goTrace">
+      <view class="g-title">需求追踪</view>
+      <view class="g-desc">需求文档 ↔ 页面 ↔ 本地 API 索引（验收用）</view>
     </view>
   </view>
 

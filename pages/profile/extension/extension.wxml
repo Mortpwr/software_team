@@ -1,0 +1,18 @@
+<view class="page">
+  <view class="card tip" wx:if="{{hint}}">
+    <view class="role">当前视角：{{roleLabel}}</view>
+    <view class="hint-text">{{hint}}</view>
+  </view>
+
+  <view class="card" wx:if="{{student}}">
+    <view class="name">{{student.name}}</view>
+    <view class="sid">学号 {{student.studentId}} · {{student.className}}</view>
+  </view>
+
+  <view class="section-title">扩展字段（JSON 画像子集）</view>
+  <view wx:if="{{!rows.length}}" class="empty-tip">暂无扩展字段，可在种子数据或后续「信息完善」流程中写入。</view>
+  <view class="card kv" wx:for="{{rows}}" wx:key="key">
+    <view class="k">{{item.key}}</view>
+    <view class="v">{{item.value}}</view>
+  </view>
+</view>

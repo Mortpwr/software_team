@@ -69,5 +69,8 @@
     </view>
   </view>
 
-  <button class="submit" type="primary" bindtap="submit">提交审批</button>
+  <view class="btns">
+    <button bindtap="saveDraft">保存草稿</button>
+    <button type="primary" bindtap="submit">提交审批</button>
+  </view>
 </view>

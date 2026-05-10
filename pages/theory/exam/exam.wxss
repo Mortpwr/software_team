@@ -1,0 +1,72 @@
+.page {
+  padding: 24rpx 24rpx 80rpx;
+}
+
+.head {
+  margin-bottom: 16rpx;
+}
+
+.h-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-bottom: 12rpx;
+}
+
+.h-sub {
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.row-btns {
+  margin-bottom: 20rpx;
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.hist {
+  margin-bottom: 12rpx;
+}
+
+.hist-line {
+  font-size: 26rpx;
+}
+
+.result {
+  margin-bottom: 20rpx;
+  background: #e8f0fc;
+  color: #1a5fb4;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.q {
+  margin-bottom: 20rpx;
+}
+
+.q-stem {
+  font-size: 28rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+  line-height: 1.45;
+}
+
+.opt {
+  padding: 16rpx 20rpx;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+  color: #374151;
+}
+
+.opt-on {
+  border-color: #1a5fb4;
+  background: #e8f0fc;
+  color: #1a5fb4;
+}
+
+.submit {
+  margin-top: 24rpx;
+}

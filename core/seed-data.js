@@ -1,6 +1,8 @@
 const approval = require('../constants/approval');
 const partyFlow = require('../constants/party-flow');
+const leagueFlowConst = require('../constants/league-flow');
 const channels = require('../constants/notice-channels');
+const { QUESTIONS: THEORY_QUESTIONS } = require('./theory-seed');
 
 /**
  * 构造“可运行”的本地首包数据：不是零散假样例，而是一张可一致演化的关系图。
@@ -24,7 +26,7 @@ function createInitialDatabase() {
       politicalStatus: '共青团员',
       tutor: '张老师',
       hometown: '北京',
-      extension: { research: '可信软件', club: '开源技术协会' },
+      extension: { research: '可信软件', club: '开源技术协会', volunteerHours: 24, skills: ['Vue', 'Node', '协作开发'] },
     },
     {
       studentId: '2023200444',
@@ -38,7 +40,7 @@ function createInitialDatabase() {
       politicalStatus: '入党积极分子',
       tutor: '李老师',
       hometown: '上海',
-      extension: { contest: '蓝桥杯省一' },
+      extension: { contest: '蓝桥杯省一', club: '合唱团', volunteerHours: 32 },
     },
     {
       studentId: '2022200999',
@@ -52,7 +54,46 @@ function createInitialDatabase() {
       politicalStatus: '中共预备党员',
       tutor: '王老师',
       hometown: '深圳',
-      extension: { internship: '某国资企业安全岗' },
+      extension: { internship: '某国资企业安全岗', awards: ['校级优秀团员'], volunteerHours: 60 },
+    },
+    {
+      studentId: '2024210888',
+      name: '钱晨',
+      grade: '2024级',
+      major: '软件工程',
+      className: '软工2402',
+      nation: '汉族',
+      phone: '13500008888',
+      idCardCipher: 'ENC:320102200602021234',
+      politicalStatus: '共青团员',
+      tutor: '张老师',
+      hometown: '南京',
+      extension: {
+        contest: 'CCPC 区域赛 · 铜牌',
+        research: '轻量级缺陷预测',
+        club: 'ACM 集训队',
+        volunteerHours: 48,
+        skills: ['C++', '数据分析', '微信小程序'],
+      },
+    },
+    {
+      studentId: '2021190777',
+      name: '孙悦',
+      grade: '2021级',
+      major: '计算机科学与技术',
+      className: '计科2101',
+      nation: '汉族',
+      phone: '13600007777',
+      idCardCipher: 'ENC:330106200005055678',
+      politicalStatus: '中共党员',
+      tutor: '周老师',
+      hometown: '杭州',
+      extension: {
+        internship: '互联网后端实习（转正答辩通过）',
+        thesis: '分布式一致性方向',
+        planAfterGrad: '保送读研 · 已确认导师',
+        cert: ['CET-6', '软考中级'],
+      },
     },
   ];
 
@@ -177,6 +218,26 @@ function createInitialDatabase() {
       false,
       now - 86400000 * 12,
     ),
+    mkKnowledge(
+      'k_second_class_01',
+      '第二课堂与综测：学时记录与常见误区',
+      '学务综合',
+      ['第二课堂', '综测', '学时'],
+      '标准答案：第二课堂学时以学院团委/教务认定规则为准；综测计算以当年综合素质评价办法为准。',
+      '建议：积极参加志愿服务与学科竞赛，但勿伪造证明材料；审核不通过将影响诚信档案。',
+      false,
+      now - 86400000 * 13,
+    ),
+    mkKnowledge(
+      'k_club_01',
+      '学生社团年审与招新：材料与时间',
+      '团学事务',
+      ['社团', '年审', '招新'],
+      '标准答案：社团年审须提交指导单位意见、章程与成员名册；招新前应完成学院团委备案。',
+      '用印与宣传材料若涉校外合作，请在办事窗口提交盖章申请并附合作协议摘要。',
+      false,
+      now - 86400000 * 14,
+    ),
   ];
 
   const templates = [
@@ -194,6 +255,7 @@ function createInitialDatabase() {
     mkHonor('h3', '国家励志奖学金', '周某', 2024, '信息安全', '2022级', '国家级', '困难认定合规且学业优良。'),
     mkHonor('h4', '校级优秀学生干部', '赵某', 2023, '计算机科学与技术', '2021级', '校级', '承担学院大型活动组织工作。'),
     mkHonor('h5', '科技创新标兵', '孙某', 2025, '软件工程', '2024级', '院级', '省部级竞赛获奖。'),
+    mkHonor('h6', 'CCPC 区域赛铜牌', '钱晨', 2026, '软件工程', '2024级', '省部级', '程序设计竞赛团队赛，体现算法与工程实现能力。'),
   ];
 
   const notices = [
@@ -228,6 +290,14 @@ function createInitialDatabase() {
       '某科技公司与学院合作专场，提供简历一对一辅导。',
       '报名与场地以就业中心小程序为准；本通知用于画像匹配演示。',
       now - 3600000 * 6,
+    ),
+    mkNotice(
+      'n_library_01',
+      '图书馆研习室预约规则调整',
+      ['学风', '图书馆'],
+      '考试周前两周起，研习室改为凌晨 1 点统一释放次日号源。',
+      '不占座、不转让预约；违规将影响后续预约权限。细则见图书馆主页。',
+      now - 7200000,
     ),
   ];
 
@@ -267,11 +337,27 @@ function createInitialDatabase() {
       decidedAt: now - 86400000 * 5,
       teacherComment: '同意，注意复课手续。',
     }),
+    mkApplication({
+      id: 'app_demo_qianchen',
+      studentId: '2024210888',
+      type: '证明申请',
+      subtype: '在读证明',
+      status: approval.PENDING,
+      createdAt: now - 43200000,
+      form: { reason: '暑期留校研学营报名', extraNote: '中文即可', startDate: '', endDate: '' },
+      attachments: [],
+      decidedAt: null,
+    }),
   ];
 
   const partyByStudent = {};
   students.forEach((s, idx) => {
     partyByStudent[s.studentId] = buildPartyProgress(s.studentId, idx, now);
+  });
+
+  const leagueByStudent = {};
+  students.forEach((s, idx) => {
+    leagueByStudent[s.studentId] = buildLeagueProgress(s.studentId, idx, now);
   });
 
   const inboxByStudent = {};
@@ -286,8 +372,8 @@ function createInitialDatabase() {
       targetRule: { kind: 'all' },
       createdAt: now - 86400000 * 2,
       channels: [
-        { name: channels.IN_APP, sendOk: 40, sendFail: 0, deliverOk: 38, deliverFail: 0, read: 12, observability: '可读' },
-        { name: channels.EMAIL, sendOk: 40, sendFail: 2, deliverOk: 0, deliverFail: 0, read: 0, observability: '不可观测' },
+        { name: channels.IN_APP, sendOk: 5, sendFail: 0, deliverOk: 5, deliverFail: 0, read: 2, observability: '可读' },
+        { name: channels.EMAIL, sendOk: 5, sendFail: 0, deliverOk: 0, deliverFail: 0, read: 0, observability: '不可观测' },
         { name: channels.WECHAT, sendOk: 0, sendFail: 0, deliverOk: 0, deliverFail: 0, read: 0, observability: '未对接' },
       ],
     },
@@ -296,7 +382,7 @@ function createInitialDatabase() {
   const academic = buildAcademicDefaults(students);
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     students,
     knowledge,
     templates,
@@ -309,11 +395,20 @@ function createInitialDatabase() {
       rules: partyFlow.DEFAULT_RULES,
     },
     partyByStudent,
+    leagueFlow: {
+      stages: leagueFlowConst.DEFAULT_STAGES,
+      rules: leagueFlowConst.DEFAULT_RULES,
+    },
+    leagueByStudent,
     applications,
     missKeywords: [],
     auditLogs: [],
     smsSimulation: [],
     academic,
+    favoriteByStudent: {},
+    recentKnowledgeByStudent: {},
+    applicationDraftsByStudent: {},
+    theory: { questions: THEORY_QUESTIONS.slice(), attempts: [] },
   };
 }
 
@@ -472,4 +567,55 @@ function buildAcademicDefaults(students) {
   return { plansByKey, progressByStudent, reports: [] };
 }
 
-module.exports = { createInitialDatabase };
+function buildLeagueProgress(studentId, idx, now) {
+  const stages = leagueFlowConst.DEFAULT_STAGES;
+  const pick = idx % 4;
+  const keys = ['l_apply', 'l_activist', 'l_develop', 'l_member'];
+  const currentKey = keys[pick];
+  const history = [];
+  const curOrder = stages.find((x) => x.key === currentKey).order;
+  stages.forEach((s) => {
+    if (s.order < curOrder) {
+      history.push({
+        stageKey: s.key,
+        at: now - (5 - s.order) * 86400000 * 12,
+        remark: '入团节点（演示，可在工作台调整）',
+      });
+    }
+  });
+  const tasks = (leagueFlowConst.DEFAULT_RULES || [])
+    .filter((r) => r.stageKey === currentKey)
+    .map((r) => ({
+      id: `lt_${studentId}_${r.id}`,
+      ruleId: r.id,
+      title: r.title,
+      body: r.body,
+      dueAt: now + r.afterDays * 86400000,
+      done: false,
+    }));
+  return { studentId, currentKey, history, tasks };
+}
+
+function migrateToV4(db) {
+  if (!db.favoriteByStudent) db.favoriteByStudent = {};
+  if (!db.recentKnowledgeByStudent) db.recentKnowledgeByStudent = {};
+  if (!db.applicationDraftsByStudent) db.applicationDraftsByStudent = {};
+  if (!db.leagueFlow) {
+    db.leagueFlow = { stages: leagueFlowConst.DEFAULT_STAGES, rules: leagueFlowConst.DEFAULT_RULES };
+  }
+  if (!db.leagueByStudent) db.leagueByStudent = {};
+  if (!db.theory) db.theory = { questions: [], attempts: [] };
+  if (!db.theory.questions || db.theory.questions.length === 0) {
+    db.theory.questions = THEORY_QUESTIONS.slice();
+  }
+  if (!db.theory.attempts) db.theory.attempts = [];
+  const now = Date.now();
+  (db.students || []).forEach((s, idx) => {
+    if (!db.leagueByStudent[s.studentId]) {
+      db.leagueByStudent[s.studentId] = buildLeagueProgress(s.studentId, idx, now);
+    }
+  });
+  if (!db.schemaVersion || db.schemaVersion < 4) db.schemaVersion = 4;
+}
+
+module.exports = { createInitialDatabase, migrateToV4 };

@@ -1,0 +1,40 @@
+.page {
+  padding: 24rpx 24rpx 140rpx;
+}
+
+.hint {
+  margin-bottom: 20rpx;
+  font-size: 24rpx;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.item {
+  margin-bottom: 20rpx;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.item-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  flex: 1;
+}
+
+.summary {
+  font-size: 26rpx;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+}
+
+.meta {
+  font-size: 22rpx;
+  color: #9ca3af;
+}

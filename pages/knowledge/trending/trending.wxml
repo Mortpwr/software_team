@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="hint card">按本地点击次数排序（演示）；上线后可改为服务端 PV。</view>
+  <view wx:if="{{!list.length}}" class="empty-tip">暂无数据</view>
+  <view class="card item" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail">
+    <view class="row">
+      <text class="item-title">{{item.title}}</text>
+      <text class="tag">{{item.category}}</text>
+    </view>
+    <view class="summary">{{item.summary}}</view>
+    <view class="meta">点击量 {{item.hitCount || 0}} · 更新 {{item.updatedText}}</view>
+  </view>
+</view>

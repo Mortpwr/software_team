@@ -13,7 +13,9 @@
     <button class="cell" data-path="/pages/workbench/publish/publish" bindtap="go">定向通知发布</button>
     <button class="cell" data-path="/pages/workbench/batches/batches" bindtap="go">批次与触达统计</button>
     <button class="cell" data-path="/pages/workbench/misses/misses" bindtap="go">知识库未命中词</button>
-    <button class="cell" data-path="/pages/workbench/party-mgmt/party-mgmt" bindtap="go">党团阶段维护</button>
+    <button class="cell" data-path="/pages/workbench/party-mgmt/party-mgmt" bindtap="go">党团阶段维护（入党）</button>
+    <button class="cell" data-path="/pages/workbench/league-mgmt/league-mgmt" bindtap="go">入团阶段维护（共青团）</button>
+    <button class="cell" wx:if="{{role === 'leader'}}" data-path="/pages/leader/dashboard/dashboard" bindtap="go">领导看板</button>
     <button class="cell" data-path="/pages/workbench/logs/logs" bindtap="go">审计日志</button>
   </view>
 </view>

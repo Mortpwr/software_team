@@ -2,6 +2,7 @@ const db = require('../core/db');
 const { uid } = require('../utils/id');
 const channels = require('../constants/notice-channels');
 const audit = require('./audit.repository');
+const roles = require('../constants/roles');
 
 function listNotices() {
   const d = db.readDb();
@@ -17,6 +18,7 @@ function matchStudent(rule, s) {
   if (!rule || rule.kind === 'all') return true;
   if (rule.kind === 'grade') return s.grade === rule.value;
   if (rule.kind === 'major') return s.major.includes(rule.value);
+  if (rule.kind === 'class') return s.className === rule.value;
   if (rule.kind === 'composite') {
     return (rule.all || []).every((r) => matchStudent(r, s));
   }
@@ -27,6 +29,14 @@ function matchStudent(rule, s) {
  * 精准推送：写入批次统计 + fan-out 站内信 (+ 邮件/短信模拟)。
  */
 function publish({ payload, actorId, role }) {
+  let targetRule = payload.targetRule || { kind: 'all' };
+  if (role === roles.COORDINATOR) {
+    const d0 = db.readDb();
+    const me = d0.students.find((x) => x.studentId === actorId);
+    if (me && me.className) {
+      targetRule = { kind: 'class', value: me.className };
+    }
+  }
   const notice = {
     id: uid('n'),
     title: payload.title,
@@ -40,7 +50,7 @@ function publish({ payload, actorId, role }) {
   const batch = {
     id: batchId,
     title: payload.title,
-    targetRule: payload.targetRule || { kind: 'all' },
+    targetRule,
     createdAt: Date.now(),
     channels: [
       {

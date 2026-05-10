@@ -1,4 +1,9 @@
 <view class="page" wx:if="{{flow}}">
+  <view class="card quick">
+    <navigator url="/pages/league/league" class="q-item" hover-class="none">共青团 · 入团进度</navigator>
+    <navigator url="/pages/theory/exam/exam" class="q-item" hover-class="none">党建理论自测</navigator>
+  </view>
+
   <view class="card head">
     <view class="h-title">{{flow.flowName}}</view>
     <view class="h-sub">当前阶段以管理端维护为准；提醒任务可对接订阅消息（后续迭代）。</view>

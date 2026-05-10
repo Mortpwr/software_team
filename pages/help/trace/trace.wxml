@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="card intro">
+    本页对照《初版需求分析文档 v3.0》功能模块，汇总小程序路由与本地网关 API 线索，便于课程验收与二次开发定位。
+  </view>
+
+  <block wx:for="{{modules}}" wx:key="id">
+    <view class="mod-head">
+      <text class="mid">{{item.id}}</text>
+      <text class="mname">{{item.name}}</text>
+      <text class="mpri">{{item.priority}}</text>
+    </view>
+    <view class="card row-item" wx:for="{{item.items}}" wx:for-item="it" wx:for-index="ix" wx:key="ix">
+      <view class="fr">{{it.fr}}</view>
+      <view class="desc">{{it.desc}}</view>
+      <view class="sc" wx:if="{{it.screen}}">页面：{{it.screen}}</view>
+      <view class="sc muted" wx:if="{{it.api}}">API：{{it.api}}</view>
+      <view class="btns">
+        <button
+          class="btn"
+          size="mini"
+          type="primary"
+          data-screen="{{it.screen}}"
+          bindtap="openPage"
+          wx:if="{{it.screen}}"
+        >
+          打开
+        </button>
+        <button
+          class="btn"
+          size="mini"
+          data-api="{{it.api}}"
+          bindtap="copyApi"
+          wx:if="{{it.api && it.api !== '(静态索引)'}}"
+        >
+          复制 API
+        </button>
+      </view>
+    </view>
+  </block>
+
+  <view class="section-title">非功能需求提示（NFR）</view>
+  <view class="card nfr" wx:for="{{nfrList}}" wx:key="code">
+    <view class="fr">{{item.code}}</view>
+    <view class="desc">{{item.desc}}</view>
+  </view>
+</view>

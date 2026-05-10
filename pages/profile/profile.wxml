@@ -27,6 +27,7 @@
       <text class="k">证件(脱敏)</text><text class="v">{{student.idCardMasked}}</text>
     </view>
     <view class="kv"><text class="k">导师</text><text class="v">{{student.tutor}}</text></view>
+    <navigator url="/pages/profile/extension/extension" class="ext-link" hover-class="none">扩展画像（竞赛 / 科研 / 实践等）</navigator>
   </view>
 
   <view class="card actions">

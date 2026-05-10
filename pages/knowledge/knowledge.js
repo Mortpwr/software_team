@@ -20,6 +20,18 @@ Page({
     this.fetch(this.data.keyword);
   },
 
+  goFavorites() {
+    wx.navigateTo({ url: '/pages/knowledge/favorites/favorites' });
+  },
+
+  goRecent() {
+    wx.navigateTo({ url: '/pages/knowledge/recent/recent' });
+  },
+
+  goTrending() {
+    wx.navigateTo({ url: '/pages/knowledge/trending/trending' });
+  },
+
   onKeywordInput(e) {
     this.setData({ keyword: e.detail.value });
   },

@@ -2,6 +2,20 @@
   padding: 24rpx 24rpx 140rpx;
 }
 
+.quick {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.q-item {
+  font-size: 28rpx;
+  color: #1a5fb4;
+  font-weight: 600;
+  padding: 8rpx 0;
+}
+
 .head {
   margin-bottom: 16rpx;
 }

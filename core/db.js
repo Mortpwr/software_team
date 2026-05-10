@@ -1,5 +1,5 @@
 const KEYS = require('./keys');
-const { createInitialDatabase } = require('./seed-data');
+const { createInitialDatabase, migrateToV4 } = require('./seed-data');
 
 /**
  * @typedef {object} PlatformDatabase
@@ -99,6 +99,7 @@ function backfill(db) {
   db.academic.plansByKey = db.academic.plansByKey || {};
   db.academic.progressByStudent = db.academic.progressByStudent || {};
   db.academic.reports = db.academic.reports || [];
+  migrateToV4(db);
 }
 
 function withDb(fn) {

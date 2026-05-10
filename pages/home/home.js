@@ -41,6 +41,18 @@ Page({
     wx.navigateTo({ url: '/pages/academic/academic' });
   },
 
+  goLeague() {
+    wx.navigateTo({ url: '/pages/league/league' });
+  },
+
+  goTheory() {
+    wx.navigateTo({ url: '/pages/theory/exam/exam' });
+  },
+
+  goTrace() {
+    wx.navigateTo({ url: '/pages/help/trace/trace' });
+  },
+
   goCreateApply() {
     wx.navigateTo({ url: '/pages/apply/create/create' });
   },

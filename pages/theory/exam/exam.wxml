@@ -1,0 +1,42 @@
+<view class="page">
+  <view class="card head">
+    <view class="h-title">党建理论知识自测</view>
+    <view class="h-sub">题目与成绩仅存于本地演示库；对接服务端后可映射学分认定规则。</view>
+  </view>
+
+  <view class="row-btns">
+    <button size="mini" type="default" bindtap="toggleHistory">{{showHistory ? '隐藏' : '查看'}}历史成绩</button>
+    <button size="mini" type="primary" bindtap="retake">重新作答</button>
+  </view>
+
+  <block wx:if="{{showHistory}}">
+    <view class="section-title">最近作答</view>
+    <view wx:if="{{!history.length}}" class="empty-tip">暂无记录</view>
+    <view class="card hist" wx:for="{{history}}" wx:key="id">
+      <view class="hist-line">{{item.atText}} · 得分 {{item.score}}（{{item.ok}}/{{item.total}}）</view>
+    </view>
+  </block>
+
+  <view wx:if="{{result}}" class="card result">
+    上次提交：{{result.ok}}/{{result.total}} 正确，折算分 {{result.score}}
+  </view>
+
+  <view class="section-title">答题</view>
+  <view class="card q" wx:for="{{questions}}" wx:key="id">
+    <view class="q-stem">{{index + 1}}. {{item.stem}}</view>
+    <view
+      class="opt {{answers[item.id] === oi ? 'opt-on' : ''}}"
+      wx:for="{{item.options}}"
+      wx:for-item="opt"
+      wx:for-index="oi"
+      wx:key="oi"
+      data-qid="{{item.id}}"
+      data-index="{{oi}}"
+      bindtap="onPick"
+    >
+      {{opt}}
+    </view>
+  </view>
+
+  <button class="submit" type="primary" bindtap="submit" disabled="{{!questions.length}}">提交答卷</button>
+</view>

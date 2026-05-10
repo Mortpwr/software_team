@@ -40,6 +40,16 @@
   color: #1f2937;
 }
 
+.ext-link {
+  display: block;
+  margin-top: 20rpx;
+  padding: 18rpx 0;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1a5fb4;
+  border-top: 1rpx solid #f3f4f6;
+}
+
 .actions {
   margin-top: 20rpx;
 }

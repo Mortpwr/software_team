@@ -20,6 +20,9 @@
   align-items: center;
   gap: 16rpx;
 }
+
+.inp {
+  flex: 1;
   background: #f9fafb;
   border-radius: 12rpx;
   padding: 16rpx 20rpx;
@@ -28,6 +31,22 @@
 
 .btn {
   flex-shrink: 0;
+}
+
+.quick-links {
+  margin-bottom: 24rpx;
+}
+
+.quick-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.ql {
+  font-size: 26rpx;
+  color: #1a5fb4;
+  font-weight: 600;
 }
 
 .item {

@@ -1,0 +1,48 @@
+<view wx:if="{{empty}}" class="page">
+  <view class="empty-tip">暂无入团流程数据。可在「我的」中执行「重置本地数据库」以注入演示种子（schema v4）。</view>
+</view>
+
+<view class="page" wx:elif="{{flow}}">
+  <view class="card head">
+    <view class="h-title">{{flow.flowName}}</view>
+    <view class="h-sub">与入党流程分立；阶段推进由管理老师在「工作台 · 入团阶段维护」操作。</view>
+  </view>
+
+  <view class="section-title">流程总览</view>
+  <view class="timeline">
+    <view
+      class="step {{item.current ? 'step-on' : ''}} {{item.done ? 'step-done' : ''}}"
+      wx:for="{{flow.stages}}"
+      wx:key="key"
+    >
+      <view class="dot-wrap">
+        <view class="dot" />
+        <view class="line" wx:if="{{index < flow.stages.length - 1}}" />
+      </view>
+      <view class="step-body">
+        <view class="step-name">{{item.name}}</view>
+        <view class="step-desc">{{item.desc}}</view>
+        <view class="step-flag" wx:if="{{item.current}}">当前所处阶段</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-title">阶段变更记录</view>
+  <view class="card" wx:for="{{flow.history}}" wx:key="at">
+    <view class="hl">{{item.stageName}}</view>
+    <view class="hm">{{item.atText}}</view>
+    <view class="hr" wx:if="{{item.remark}}">{{item.remark}}</view>
+  </view>
+  <view wx:if="{{!flow.history.length}}" class="empty-tip">暂无历史记录</view>
+
+  <view class="section-title">待办与提醒</view>
+  <view class="card task" wx:for="{{flow.nextTasks}}" wx:key="id">
+    <view class="t-title">{{item.title}}</view>
+    <view class="tb">{{item.body}}</view>
+    <view class="t-due" wx:if="{{item.dueText}}">建议完成：{{item.dueText}}</view>
+    <button class="tdone" size="mini" type="primary" data-id="{{item.id}}" bindtap="markDone" disabled="{{item.done}}">
+      {{item.done ? '已完成' : '标记完成'}}
+    </button>
+  </view>
+  <view wx:if="{{!flow.nextTasks.length}}" class="empty-tip">暂无提醒任务</view>
+</view>

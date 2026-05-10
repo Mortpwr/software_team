@@ -14,6 +14,7 @@ Page({
     roleOptions: [
       { id: roles.STUDENT, name: ROLE_LABEL.student },
       { id: roles.TEACHER, name: ROLE_LABEL.teacher },
+      { id: roles.COORDINATOR, name: ROLE_LABEL.coordinator },
       { id: roles.LEADER, name: ROLE_LABEL.leader },
     ],
     roleIndex: 0,

@@ -5,6 +5,9 @@
       <text class="tag">{{item.category}}</text>
       <text class="meta" wx:if="{{item.updatedText}}">更新 {{item.updatedText}}</text>
     </view>
+    <button class="fav-btn" size="mini" type="{{favorited ? 'default' : 'primary'}}" bindtap="toggleFavorite">
+      {{favorited ? '已收藏' : '收藏本条'}}
+    </button>
   </view>
 
   <view class="card block">

@@ -61,6 +61,14 @@ function publicStudent(s, viewerRole) {
       idCard: null,
     };
   }
+  if (viewerRole === roles.COORDINATOR) {
+    return {
+      ...base,
+      phoneMasked: maskPhone(s.phone),
+      hometown: s.hometown,
+      idCard: null,
+    };
+  }
   return { ...base };
 }
 
