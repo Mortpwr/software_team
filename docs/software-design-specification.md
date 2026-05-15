@@ -1,18 +1,19 @@
 # 学院学生综合服务与党团管理平台软件设计规格说明书
 
-文档编号：学院学生综合服务与党团管理平台 – SDS – 1.0
+文档编号：学院学生综合服务与党团管理平台 – SDS – 1.1
 
 课程名称：软件工程导论  
 项目名称：学院学生综合服务与党团管理平台  
 成员信息：李煜南、许珀铭、朱启哲、赵子涵  
 提交日期：2026-05-15  
-文档版本：V1.0
+文档版本：V1.1
 
 ## 文档变更历史记录
 
 | 序号 | 变更日期 | 变更人员 | 变更内容详情描述 | 版本 |
 | --- | --- | --- | --- | --- |
 | 1 | 2026-05-15 | 项目组 | 根据需求分析文档与当前前后端实现编写软件设计规格说明书初版 | V1.0 |
+| 2 | 2026-05-15 | 项目组 | 将 Web 前端由原生静态 SPA 重构为 Vue 3 + Vite 单页应用，补充组件化页面、服务层 API 封装、Vite 构建与路由冒烟验证说明 | V1.1 |
 
 ## 目录
 
@@ -62,7 +63,7 @@
 
 本系统面向学院学生事务办理与党团管理场景，提供政策知识库、党团流程进度、通知公告、办事申请与审批、奖励荣誉展示、学生画像、学业分析和管理工作台等功能。
 
-系统首版采用 Web 端优先适配方案，同时保留原微信小程序代码。当前 Web 前端采用静态 SPA 方式实现，后端采用 Python + FastAPI + PostgreSQL 技术栈。系统通过模块化 API 设计预留后续与真实认证、文件服务、消息服务和学校系统对接的能力。
+系统首版采用 Web 端优先适配方案，同时保留原微信小程序代码。当前 Web 前端采用 Vue 3 + Vite 实现，后端采用 Python + FastAPI + PostgreSQL 技术栈。系统通过模块化 API 设计预留后续与真实认证、文件服务、消息服务和学校系统对接的能力。
 
 ### 1.4 文档概述
 
@@ -141,11 +142,12 @@
 
 | 层次 | 技术 |
 | --- | --- |
-| Web 前端 | HTML、CSS、JavaScript ES Modules |
+| Web 前端 | Vue 3、Vite、HTML、CSS、JavaScript ES Modules |
 | 小程序端 | 微信小程序 WXML / WXSS / JavaScript |
 | 后端 | Python、FastAPI、SQLAlchemy |
 | 数据库 | PostgreSQL、JSONB |
 | 接口格式 | REST 风格 HTTP API，JSON 数据 |
+| 前端包管理与构建 | npm、Vite build / preview |
 | 版本管理 | Git |
 
 #### 2.2.3 容量与性能约束
@@ -208,14 +210,20 @@ flowchart TB
 
 #### 3.1.2 前端逻辑架构
 
-Web 前端位于 `web/` 目录，采用轻量静态 SPA 结构。
+Web 前端位于 `web/` 目录，采用 Vue 3 + Vite 单页应用结构。
 
 ```text
 web/
   index.html              Web 入口
+  package.json            前端依赖与脚本
+  vite.config.js          Vite 构建配置
   styles.css              全局响应式样式
   src/
-    app.js                路由、页面渲染、事件绑定
+    main.js               Vue 应用入口
+    App.vue               应用外壳、导航、角色切换
+    views/                业务页面组件
+    services/
+      api.js              页面级业务 API 封装
     api/
       client.js           统一 API 访问入口
       mockGateway.js      本地 mock API
@@ -223,21 +231,24 @@ web/
     data/
       seed.js             mock 种子数据与常量
     state/
+      routes.js           前端导航与 hash 路由配置
       session.js          当前角色与学生会话
     utils.js              格式化、转义、工具函数
 ```
 
-前端通过 `request({ path, method, data, session })` 访问数据。默认模式为 `mock`，可通过浏览器 `localStorage` 切换到真实后端。
+页面组件通过 `src/services/api.js` 访问业务数据，服务层再调用 `request({ path, method, data, session })`。默认模式为 `mock`，可通过浏览器 `localStorage` 切换到真实后端。
 
 ```mermaid
 flowchart LR
-    Page["页面渲染 app.js"]
+    Page["Vue 页面组件"]
+    Service["services/api.js"]
     Client["api/client.js"]
     Mock["mockGateway.js"]
     Remote["FastAPI /api"]
     Store["localStorage"]
 
-    Page --> Client
+    Page --> Service
+    Service --> Client
     Client -->|mode=mock| Mock
     Mock --> Store
     Client -->|mode=remote| Remote
@@ -674,17 +685,42 @@ classDiagram
 
 ```mermaid
 classDiagram
-    class App {
-        +render(route)
-        +routeHtml(route)
-        +handleSubmit(event)
-        +handleClick(event)
-        +handleChange(event)
+    class Main {
+        +createApp(App)
+    }
+
+    class AppShell {
+        +currentView
+        +onRoleChange(event)
+        +onStudentChange(event)
+        +showToast(message)
+        +reloadShell()
+    }
+
+    class ViewComponents {
+        +load()
+        +submit()
+        +markRead(id)
+        +saveProgress(event)
+    }
+
+    class ApiService {
+        +getCurrentStudent()
+        +searchKnowledge(query)
+        +listApplications(query)
+        +submitApplication(payload)
+        +publishNotice(payload)
+        +getAcademicReport()
     }
 
     class ApiClient {
         +request(options)
         +configureApi(config)
+    }
+
+    class Routes {
+        +readRoute()
+        +go(routeId)
     }
 
     class MockGateway {
@@ -703,20 +739,44 @@ classDiagram
         +setSession(session)
     }
 
-    App --> ApiClient
+    Main --> AppShell
+    AppShell --> ViewComponents
+    AppShell --> Routes
+    AppShell --> Session
+    ViewComponents --> ApiService
+    ApiService --> ApiClient
     ApiClient --> MockGateway
     MockGateway --> Store
-    App --> Session
 ```
 
 | 模块 | 文件 | 说明 |
 | --- | --- | --- |
-| `app.js` | `web/src/app.js` | Web 路由、页面渲染、事件处理。 |
+| `main.js` | `web/src/main.js` | Vue 应用入口。 |
+| `App.vue` | `web/src/App.vue` | 应用外壳、导航、角色切换与视图分发。 |
+| `views` | `web/src/views/` | 按业务拆分的页面组件。 |
+| `api.js` | `web/src/services/api.js` | 面向页面组件的业务 API 封装。 |
 | `client.js` | `web/src/api/client.js` | 统一 API 调用，可切换 mock/remote。 |
 | `mockGateway.js` | `web/src/api/mockGateway.js` | 浏览器本地 mock 后端。 |
 | `store.js` | `web/src/api/store.js` | localStorage 数据仓储。 |
 | `session.js` | `web/src/state/session.js` | 当前角色与学生身份。 |
+| `routes.js` | `web/src/state/routes.js` | 前端导航与 hash 路由配置。 |
 | `seed.js` | `web/src/data/seed.js` | 前端 mock 种子数据。 |
+
+本次 V1.1 迭代后，前端模块边界调整为“组件层 -> 业务 API 服务层 -> 请求客户端 -> mock/remote 后端”。各 Vue 页面组件仅负责界面状态、表单校验和用户交互，不直接拼接后端 URL；具体接口路径集中在 `web/src/services/api.js` 中，后续 FastAPI 路由调整或接入真实后端时主要修改服务层与 `client.js` 配置。
+
+组件拆分如下：
+
+| 页面组件 | 对应功能 |
+| --- | --- |
+| `HomeView.vue` | 首页概览、近期通知和功能入口。 |
+| `KnowledgeView.vue` | 政策知识库检索、模板展示和未命中关键词记录。 |
+| `PartyView.vue` | 党团流程阶段、历史节点和待办提醒。 |
+| `ApplyView.vue` | 证明、请假、盖章申请提交和申请列表。 |
+| `NoticesView.vue` | 通知公告、站内信和已读状态。 |
+| `HonorsView.vue` | 奖励荣誉浏览与筛选。 |
+| `AcademicView.vue` | 学业分析、培养方案比对和成绩单上传接口位。 |
+| `ProfileView.vue` | 学生画像与字段脱敏展示。 |
+| `WorkbenchView.vue` | 管理端审批、通知发布、批次统计和审计日志。 |
 
 #### 3.4.4 关键方法活动图：审批操作
 
@@ -900,7 +960,7 @@ flowchart TD
 ```mermaid
 flowchart TB
     Browser["浏览器 / 手机浏览器"]
-    Static["静态 Web 服务<br/>web/index.html"]
+    Static["Vite 构建产物 / 静态 Web 服务<br/>web/dist"]
     API["FastAPI 服务<br/>Uvicorn"]
     DB[("PostgreSQL<br/>student_service")]
     FutureFile["文件服务（后续）"]
@@ -919,7 +979,8 @@ flowchart TB
 
 ```bash
 cd web
-python3 -m http.server 5177
+npm install
+npm run dev
 ```
 
 后端启动：
@@ -958,6 +1019,17 @@ localStorage.setItem("ss_web_api_mode", "mock");
 location.reload();
 ```
 
+V1.1 前端重构后，本地开发与构建命令如下：
+
+```bash
+cd web
+npm install
+npm run dev
+npm run build
+```
+
+其中 `npm run dev` 默认启动 Vite 开发服务，访问 `http://127.0.0.1:5177/`；`npm run build` 生成 `web/dist/` 静态产物，可交由 Nginx 或其他静态服务托管。
+
 #### 3.6.4 目标部署建议
 
 目标部署可采用如下方式：
@@ -983,9 +1055,10 @@ location.reload();
 
 截至 2026-05-15，当前实现状态如下：
 
-- Web 前端已完成主要页面和 mock/remote API 适配。
+- Web 前端已由原生静态 SPA 重构为 Vue 3 + Vite 单页应用，已完成主要页面组件化和 mock/remote API 适配。
 - FastAPI 后端已完成基础模型、路由和 PostgreSQL 连接。
 - 本地 PostgreSQL 已创建 `student_service` 数据库和账号。
 - 种子数据已成功写入，包含学生、知识库、通知、申请、荣誉、党团进度、学业数据等。
 - 已验证 `/health`、`/api/knowledge`、`/api/applications`、`/api/workbench/summary` 等接口可访问。
-- 后续重点为权限菜单细化、知识库管理、附件上传、审批意见交互和真实认证对接。
+- 前端已通过 `npm run build` 构建验证，并对 `home`、`knowledge`、`party`、`apply`、`notices`、`honors`、`academic`、`profile`、`workbench` 等 hash 路由进行了浏览器冒烟检查。
+- 后续重点为权限菜单细化、知识库管理、附件上传、审批意见交互、真实认证对接和前后端联调测试。
