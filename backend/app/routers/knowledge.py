@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.deps import CurrentSession, get_current_session
 from app.models import KnowledgeItem, TemplateFile
-from app.schemas import KnowledgeCreate
+from app.schemas import KnowledgeCreate, KnowledgeOnlinePut, KnowledgeUpdate
 from app.services.common import audit, uid
 from app.services.serializers import knowledge, template
 
@@ -45,6 +45,56 @@ def create_knowledge(payload: KnowledgeCreate, db: Session = Depends(get_db), se
     )
     db.add(row)
     audit(db, session, "knowledge_create", row.id)
+    db.commit()
+    return knowledge(row)
+
+
+@router.get("/admin/list")
+def list_knowledge_admin(db: Session = Depends(get_db), session: CurrentSession = Depends(get_current_session)) -> dict:
+    if session.role not in {"teacher", "leader"}:
+        raise HTTPException(status_code=403, detail="forbidden")
+    rows = db.scalars(select(KnowledgeItem).order_by(KnowledgeItem.updated_at.desc())).all()
+    return {"list": [knowledge(row) for row in rows]}
+
+
+@router.put("/{item_id}")
+def update_knowledge(
+    item_id: str,
+    payload: KnowledgeUpdate,
+    db: Session = Depends(get_db),
+    session: CurrentSession = Depends(get_current_session),
+) -> dict:
+    if session.role != "teacher":
+        raise HTTPException(status_code=403, detail="forbidden")
+    row = db.get(KnowledgeItem, item_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="knowledge not found")
+    row.title = payload.title
+    row.category = payload.category
+    row.tags = payload.tags
+    row.summary = payload.summary
+    row.body = payload.body
+    row.sensitive_hint = payload.sensitive_hint
+    row.online = payload.online
+    audit(db, session, "knowledge_update", item_id)
+    db.commit()
+    return knowledge(row)
+
+
+@router.post("/{item_id}/online")
+def set_knowledge_online(
+    item_id: str,
+    payload: KnowledgeOnlinePut,
+    db: Session = Depends(get_db),
+    session: CurrentSession = Depends(get_current_session),
+) -> dict:
+    if session.role != "teacher":
+        raise HTTPException(status_code=403, detail="forbidden")
+    row = db.get(KnowledgeItem, item_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="knowledge not found")
+    row.online = payload.online
+    audit(db, session, "knowledge_online" if payload.online else "knowledge_offline", item_id)
     db.commit()
     return knowledge(row)
 

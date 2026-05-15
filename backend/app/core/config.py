@@ -14,6 +14,8 @@ class Settings:
         )
         self.cors_origins = os.getenv("CORS_ORIGINS", "http://127.0.0.1:5177,http://localhost:5177")
         self.auto_create_tables = os.getenv("AUTO_CREATE_TABLES", "false").lower() in {"1", "true", "yes"}
+        self.upload_dir = os.getenv("UPLOAD_DIR", str(Path(__file__).resolve().parents[2] / "storage" / "uploads"))
+        self.max_upload_bytes = int(os.getenv("MAX_UPLOAD_BYTES", str(30 * 1024 * 1024)))
 
     @property
     def cors_origin_list(self) -> list[str]:

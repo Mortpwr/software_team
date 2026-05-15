@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -94,7 +94,21 @@ def list_batches(db: Session = Depends(get_db), session: CurrentSession = Depend
     if session.role not in {"teacher", "leader", "coordinator"}:
         raise HTTPException(status_code=403, detail="forbidden")
     rows = db.scalars(select(NoticeBatch).order_by(NoticeBatch.created_at.desc())).all()
-    return {"list": [batch(row) for row in rows]}
+    return {"list": [batch_with_read_stats(db, row) for row in rows]}
+
+
+def batch_with_read_stats(db: Session, row: NoticeBatch) -> dict:
+    payload = batch(row)
+    read_count = db.scalar(
+        select(func.count())
+        .select_from(Message)
+        .where(Message.batch_id == row.id, Message.read_at.is_not(None)),
+    ) or 0
+    payload["channels"] = [
+        {**channel, "read": read_count} if channel.get("name") == "站内" else channel
+        for channel in payload["channels"]
+    ]
+    return payload
 
 
 def match_rule(rule: dict, student: Student, session: CurrentSession, current: Student | None) -> bool:

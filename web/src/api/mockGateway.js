@@ -12,9 +12,15 @@ export async function mockRequest({ path, method = "GET", data = {}, session }) 
   if (parts[0] === "student" && parts[1] === "me") return getMe(session);
   if (parts[0] === "students") return { list: readDb().students.map((s) => publicStudent(s, ROLES.TEACHER)) };
 
-  if (parts[0] === "knowledge" && parts.length === 1) return knowledgeList(data);
+  if (parts[0] === "knowledge" && parts.length === 1 && verb === "GET") return knowledgeList(data);
+  if (parts[0] === "knowledge" && parts.length === 1 && verb === "POST") return createKnowledge(data, session);
+  if (parts[0] === "knowledge" && parts[1] === "admin" && parts[2] === "list") return knowledgeAdminList(session);
   if (parts[0] === "knowledge" && parts[1] === "miss" && verb === "POST") return recordMiss(data.keyword, session);
+  if (parts[0] === "knowledge" && parts[2] === "online" && verb === "POST") return setKnowledgeOnline(parts[1], data, session);
+  if (parts[0] === "knowledge" && parts[1] && verb === "PUT") return updateKnowledge(parts[1], data, session);
   if (parts[0] === "knowledge" && parts[1]) return knowledgeDetail(parts[1], session);
+
+  if (parts[0] === "files" && parts[1] === "upload" && verb === "POST") return uploadFileMeta(data, session);
 
   if (parts[0] === "party" && parts[1] === "progress") return partyProgress(session.studentId);
   if (parts[0] === "party" && parts[1] === "tasks" && parts[3] === "done" && verb === "POST") return completePartyTask(session.studentId, parts[2]);
@@ -31,7 +37,9 @@ export async function mockRequest({ path, method = "GET", data = {}, session }) 
   if (parts[0] === "applications" && parts[2] === "submit" && verb === "POST") return submitExistingApplication(parts[1], data, session);
   if (parts[0] === "applications" && parts[1]) return applicationDetail(parts[1], session);
 
-  if (parts[0] === "honors") return honors(data);
+  if (parts[0] === "honors" && parts.length === 1 && verb === "GET") return honors(data);
+  if (parts[0] === "honors" && parts.length === 1 && verb === "POST") return createHonor(data, session);
+  if (parts[0] === "honors" && parts[1] && verb === "PUT") return updateHonor(parts[1], data, session);
   if (parts[0] === "academic" && parts[1] === "report") return academicReport(session.studentId);
   if (parts[0] === "academic" && parts[1] === "plan") return academicPlan(session.studentId);
   if (parts[0] === "academic" && parts[1] === "progress" && verb === "PUT") return saveAcademicProgress(data, session);
@@ -40,7 +48,7 @@ export async function mockRequest({ path, method = "GET", data = {}, session }) 
   if (parts[0] === "workbench" && parts[1] === "summary") return workbenchSummary(session);
   if (parts[0] === "workbench" && parts[1] === "knowledge" && parts[2] === "misses") return { list: readDb().missKeywords.sort((a, b) => b.count - a.count) };
   if (parts[0] === "workbench" && parts[1] === "notices" && parts[2] === "publish" && verb === "POST") return publishNotice(data, session);
-  if (parts[0] === "workbench" && parts[1] === "batches") return { list: readDb().batches };
+  if (parts[0] === "workbench" && parts[1] === "batches") return { list: batchesWithReadStats() };
   if (parts[0] === "workbench" && parts[1] === "sms") return { list: readDb().smsSimulation };
   if (parts[0] === "workbench" && parts[1] === "party" && parts[2] === "advance" && verb === "POST") return advanceParty(data, session);
   if (parts[0] === "workbench" && parts[1] === "applications" && parts[2]) return decideApplication(parts[2], parts[3], data, session);
@@ -78,10 +86,73 @@ function publicStudent(s, role) {
 function knowledgeList({ q, category }) {
   const db = readDb();
   const categories = ["全部", ...new Set(db.knowledge.map((k) => k.category))];
-  let list = db.knowledge.slice();
+  let list = db.knowledge.filter((k) => k.online !== false);
   if (category && category !== "全部") list = list.filter((k) => k.category === category);
   list = q ? rank(q, list, (k) => [k.title, k.category, k.summary, k.body, (k.tags || []).join(",")]) : list;
   return { list, categories, templates: db.templates };
+}
+
+function requireTeacher(session) {
+  if (session.role !== ROLES.TEACHER) throw new Error("FORBIDDEN");
+}
+
+function knowledgePayload(data) {
+  return {
+    title: data.title,
+    category: data.category || "未分类",
+    tags: data.tags || [],
+    summary: data.summary || "",
+    body: data.body || "",
+    sensitiveHint: Boolean(data.sensitiveHint),
+    online: data.online !== false,
+  };
+}
+
+function knowledgeAdminList(session) {
+  if (![ROLES.TEACHER, ROLES.LEADER].includes(session.role)) throw new Error("FORBIDDEN");
+  return { list: readDb().knowledge.slice().sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)) };
+}
+
+function createKnowledge(data, session) {
+  requireTeacher(session);
+  let row;
+  withDb((db) => {
+    row = {
+      id: uid("k"),
+      ...knowledgePayload(data),
+      attachments: data.attachments || [],
+      hitCount: 0,
+      updatedAt: Date.now(),
+    };
+    db.knowledge.unshift(row);
+    appendAudit(db, session, "knowledge_create", row.id);
+  });
+  return row;
+}
+
+function updateKnowledge(id, data, session) {
+  requireTeacher(session);
+  let row;
+  withDb((db) => {
+    row = db.knowledge.find((item) => item.id === id);
+    if (!row) throw new Error("NOT_FOUND");
+    Object.assign(row, knowledgePayload(data), { updatedAt: Date.now() });
+    appendAudit(db, session, "knowledge_update", id);
+  });
+  return row;
+}
+
+function setKnowledgeOnline(id, data, session) {
+  requireTeacher(session);
+  let row;
+  withDb((db) => {
+    row = db.knowledge.find((item) => item.id === id);
+    if (!row) throw new Error("NOT_FOUND");
+    row.online = data.online;
+    row.updatedAt = Date.now();
+    appendAudit(db, session, data.online ? "knowledge_online" : "knowledge_offline", id);
+  });
+  return row;
 }
 
 function recordMiss(keyword, session) {
@@ -110,6 +181,22 @@ function knowledgeDetail(id, session) {
   return item;
 }
 
+function uploadFileMeta(data, session) {
+  const file = typeof FormData !== "undefined" && data instanceof FormData ? data.get("file") : null;
+  const business = typeof FormData !== "undefined" && data instanceof FormData ? data.get("business") : "general";
+  const meta = {
+    id: uid("file"),
+    name: file?.name || "mock-file",
+    size: file?.size || 0,
+    contentType: file?.type || "application/octet-stream",
+    business,
+    url: "",
+    uploadedAt: Date.now(),
+  };
+  withDb((db) => appendAudit(db, session, "file_upload", meta.id));
+  return meta;
+}
+
 function partyProgress(studentId) {
   const db = readDb();
   return { flowName: "入党流程", stages: FLOW_STAGES, ...db.partyByStudent[studentId] };
@@ -135,6 +222,18 @@ function markRead(studentId, id) {
     if (msg && !msg.readAt) msg.readAt = Date.now();
   });
   return { ok: true };
+}
+
+function batchesWithReadStats() {
+  const db = readDb();
+  const messages = Object.values(db.inboxByStudent || {}).flat();
+  return db.batches.map((batch) => {
+    const read = messages.filter((item) => item.batchId === batch.id && item.readAt).length;
+    return {
+      ...batch,
+      channels: (batch.channels || []).map((channel) => (channel.name === "站内" ? { ...channel, read } : channel)),
+    };
+  });
 }
 
 function applicationsList(data, session) {
@@ -254,6 +353,41 @@ function honors(data) {
   if (data.category) list = list.filter((h) => h.category === data.category);
   if (data.major) list = list.filter((h) => h.major.includes(data.major));
   return { list };
+}
+
+function honorPayload(data) {
+  return {
+    title: data.title,
+    winner: data.winner,
+    year: Number(data.year),
+    major: data.major || "",
+    grade: data.grade || "",
+    category: data.category || "",
+    intro: data.intro || "",
+  };
+}
+
+function createHonor(data, session) {
+  requireTeacher(session);
+  let row;
+  withDb((db) => {
+    row = { id: uid("honor"), ...honorPayload(data) };
+    db.honors.unshift(row);
+    appendAudit(db, session, "honor_create", row.id);
+  });
+  return row;
+}
+
+function updateHonor(id, data, session) {
+  requireTeacher(session);
+  let row;
+  withDb((db) => {
+    row = db.honors.find((item) => item.id === id);
+    if (!row) throw new Error("NOT_FOUND");
+    Object.assign(row, honorPayload(data));
+    appendAudit(db, session, "honor_update", id);
+  });
+  return row;
 }
 
 function academicPlan(studentId) {

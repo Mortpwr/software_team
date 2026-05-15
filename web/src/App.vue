@@ -4,7 +4,7 @@ import { ROLE_LABEL } from "./data/seed.js";
 import { readDb } from "./api/store.js";
 import { getSession, setSession } from "./state/session.js";
 import { createApi } from "./services/api.js";
-import { go, mobileRouteIds, readRoute, routes } from "./state/routes.js";
+import { canAccessRoute, go, mobileRouteIds, readRoute, routes, visibleRoutes as getVisibleRoutes } from "./state/routes.js";
 import HomeView from "./views/HomeView.vue";
 import KnowledgeView from "./views/KnowledgeView.vue";
 import PartyView from "./views/PartyView.vue";
@@ -39,9 +39,11 @@ const viewMap = {
   workbench: WorkbenchView,
 };
 
-const currentView = computed(() => viewMap[route.value] || HomeView);
-const currentTitle = computed(() => routes.find((item) => item.id === route.value)?.label || "首页");
-const mobileRoutes = computed(() => routes.filter((item) => mobileRouteIds.includes(item.id)));
+const activeRoute = computed(() => (canAccessRoute(route.value, session.value.role) ? route.value : "home"));
+const visibleNavRoutes = computed(() => getVisibleRoutes(session.value.role));
+const currentView = computed(() => viewMap[activeRoute.value] || HomeView);
+const currentTitle = computed(() => routes.find((item) => item.id === activeRoute.value)?.label || "首页");
+const mobileRoutes = computed(() => visibleNavRoutes.value.filter((item) => mobileRouteIds.includes(item.id)));
 const studentOptions = computed(() => db.value.students || []);
 
 window.addEventListener("hashchange", () => {
@@ -58,7 +60,9 @@ watchEffect(() => {
 });
 
 function onRoleChange(event) {
-  setSession({ ...session.value, role: event.target.value });
+  const role = event.target.value;
+  setSession({ ...session.value, role });
+  if (!canAccessRoute(route.value, role)) go("home");
 }
 
 function onStudentChange(event) {
@@ -88,10 +92,10 @@ function reloadShell() {
       </div>
       <nav class="nav">
         <a
-          v-for="item in routes"
+          v-for="item in visibleNavRoutes"
           :key="item.id"
           href="#"
-          :class="{ active: route === item.id }"
+          :class="{ active: activeRoute === item.id }"
           @click.prevent="go(item.id)"
         >
           {{ item.label }}
@@ -101,7 +105,7 @@ function reloadShell() {
 
     <main class="main">
       <div class="topbar">
-        <h1 class="page-title">{{ currentTitle }}</h1>
+      <h1 class="page-title">{{ currentTitle }}</h1>
         <div class="session-panel">
           <select :value="session.role" @change="onRoleChange">
             <option v-for="(label, id) in ROLE_LABEL" :key="id" :value="id">{{ label }}</option>
@@ -123,7 +127,7 @@ function reloadShell() {
       v-for="item in mobileRoutes"
       :key="item.id"
       href="#"
-      :class="{ active: route === item.id }"
+      :class="{ active: activeRoute === item.id }"
       @click.prevent="go(item.id)"
     >
       {{ item.label.slice(0, 4) }}

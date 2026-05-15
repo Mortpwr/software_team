@@ -68,6 +68,10 @@ textarea {
   color: var(--text);
 }
 
+input[type="checkbox"] {
+  width: auto;
+}
+
 textarea {
   min-height: 92px;
   resize: vertical;

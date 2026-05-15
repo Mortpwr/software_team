@@ -47,6 +47,7 @@ def knowledge(row: KnowledgeItem) -> dict:
         "attachments": row.attachments or [],
         "updatedAt": dt_ms(row.updated_at),
         "hitCount": row.hit_count,
+        "online": row.online,
     }
 
 

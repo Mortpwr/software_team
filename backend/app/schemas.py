@@ -49,6 +49,24 @@ class KnowledgeCreate(BaseModel):
     sensitive_hint: bool = Field(default=False, alias="sensitiveHint")
 
 
+class KnowledgeUpdate(KnowledgeCreate):
+    online: bool = True
+
+
+class KnowledgeOnlinePut(BaseModel):
+    online: bool = True
+
+
+class HonorCreate(BaseModel):
+    title: str
+    winner: str
+    year: int
+    major: str = ""
+    grade: str = ""
+    category: str = ""
+    intro: str = ""
+
+
 class ApiMessage(BaseModel):
     ok: bool = True
     message: str = ""

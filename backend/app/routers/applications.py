@@ -6,9 +6,10 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.deps import CurrentSession, get_current_session
-from app.models import Application, Student
+from app.models import Application
 from app.schemas import ApplicationCreate, ApplicationDecision
 from app.services.common import audit, now_ms, uid
+from app.services.permissions import COORDINATOR, LEADER, TEACHER, require_roles, scoped_student_ids
 from app.services.serializers import application
 
 router = APIRouter(tags=["applications"])
@@ -30,14 +31,10 @@ def list_applications(
 ) -> dict:
     stmt = select(Application)
     if scope == "workbench":
-        if session.role not in {"teacher", "leader", "coordinator"}:
-            raise HTTPException(status_code=403, detail="forbidden")
-        if session.role == "coordinator":
-            current = db.get(Student, session.student_id)
-            if not current:
-                raise HTTPException(status_code=404, detail="student not found")
-            class_students = select(Student.student_id).where(Student.class_name == current.class_name)
-            stmt = stmt.where(Application.student_id.in_(class_students))
+        require_roles(session, TEACHER, LEADER, COORDINATOR)
+        scope_ids = scoped_student_ids(db, session)
+        if scope_ids is not None:
+            stmt = stmt.where(Application.student_id.in_(scope_ids))
     else:
         stmt = stmt.where(Application.student_id == session.student_id)
     if status:
@@ -159,8 +156,7 @@ def decide_application(
     db: Session = Depends(get_db),
     session: CurrentSession = Depends(get_current_session),
 ) -> dict:
-    if session.role != "teacher":
-        raise HTTPException(status_code=403, detail="forbidden")
+    require_roles(session, TEACHER)
     row = db.get(Application, app_id)
     if not row:
         raise HTTPException(status_code=404, detail="application not found")

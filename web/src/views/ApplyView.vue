@@ -33,7 +33,25 @@ function onFiles(event) {
   form.files = Array.from(event.target.files || []);
 }
 
-function buildPayload() {
+function isNativeFile(item) {
+  return typeof File !== "undefined" && item instanceof File;
+}
+
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+async function uploadAttachments() {
+  return Promise.all(form.files.map(async (item) => (isNativeFile(item) ? api.uploadFile(item, form.type) : item)));
+}
+
+async function buildPayload() {
+  const attachments = await uploadAttachments();
   return {
     type: form.type,
     subtype: form.subtype,
@@ -42,7 +60,7 @@ function buildPayload() {
       startDate: form.startDate,
       endDate: form.endDate,
     },
-    attachments: form.files.map((file) => ({ name: file.name, size: file.size })),
+    attachments,
   };
 }
 
@@ -74,7 +92,7 @@ function resetForm() {
 }
 
 async function saveDraft() {
-  const draft = await api.saveApplicationDraft(buildPayload());
+  const draft = await api.saveApplicationDraft(await buildPayload());
   fillForm(draft);
   toast("草稿已保存");
   await load();
@@ -89,7 +107,7 @@ async function submit() {
     toast("盖章申请须上传附件");
     return;
   }
-  const payload = buildPayload();
+  const payload = await buildPayload();
   if (form.id && [APPROVAL.DRAFT, APPROVAL.REJECTED].includes(form.status)) {
     await api.submitApplicationById(form.id, payload);
     toast(form.status === APPROVAL.REJECTED ? "已重新提交审批" : "草稿已提交审批");
@@ -103,6 +121,15 @@ async function submit() {
 
 async function openDetail(item) {
   selected.value = await api.getApplication(item.id).catch(() => item);
+}
+
+async function downloadAttachment(file) {
+  if (!file?.id && !file?.url) {
+    toast("该附件仅为本地元数据，暂无可下载文件");
+    return;
+  }
+  const blob = await api.downloadFile(file);
+  saveBlob(blob, file.name || "attachment");
 }
 </script>
 
@@ -187,6 +214,13 @@ async function openDetail(item) {
     </div>
     <p>{{ selected.type }} · {{ selected.subtype }} · {{ selected.id }}</p>
     <p class="muted">说明：{{ selected.form?.reason || "未填写" }}</p>
+    <div v-if="selected.attachments?.length" class="section-title">附件</div>
+    <div v-if="selected.attachments?.length" class="stack">
+      <div v-for="file in selected.attachments" :key="file.id || file.name" class="card row between">
+        <span>{{ file.name }} <span class="muted">({{ file.size || 0 }} bytes)</span></span>
+        <button @click="downloadAttachment(file)">下载</button>
+      </div>
+    </div>
     <div class="section-title">审批轨迹</div>
     <div class="stack">
       <div v-for="row in selected.auditTrail || []" :key="`${row.at}-${row.action}`" class="card muted">

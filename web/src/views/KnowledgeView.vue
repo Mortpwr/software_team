@@ -20,6 +20,21 @@ async function load() {
     await api.recordKnowledgeMiss(query.q.trim());
   }
 }
+
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+async function downloadTemplate(item) {
+  const blob = await api.downloadTemplate(item);
+  saveBlob(blob, `${item.name}.${item.format || "txt"}`);
+  toast("模板下载已开始");
+}
 </script>
 
 <template>
@@ -59,7 +74,7 @@ async function load() {
             <strong>{{ item.name }}</strong>
             <div class="muted">{{ item.scene }} · {{ item.format }}</div>
           </div>
-          <button @click="toast('模板下载接口已预留，后端接入后返回文件流')">下载</button>
+          <button @click="downloadTemplate(item)">下载</button>
         </div>
       </div>
     </section>
