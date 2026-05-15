@@ -22,5 +22,11 @@ def me(db: Session = Depends(get_db), session: CurrentSession = Depends(get_curr
 def list_students(db: Session = Depends(get_db), session: CurrentSession = Depends(get_current_session)) -> dict:
     if session.role not in {"teacher", "leader", "coordinator"}:
         raise HTTPException(status_code=403, detail="forbidden")
-    rows = db.scalars(select(Student).order_by(Student.grade.desc(), Student.student_id)).all()
+    stmt = select(Student)
+    if session.role == "coordinator":
+        current = db.get(Student, session.student_id)
+        if not current:
+            raise HTTPException(status_code=404, detail="student not found")
+        stmt = stmt.where(Student.class_name == current.class_name)
+    rows = db.scalars(stmt.order_by(Student.grade.desc(), Student.student_id)).all()
     return {"list": [student_public(row, session.role) for row in rows]}

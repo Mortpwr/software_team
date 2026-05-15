@@ -58,7 +58,8 @@ def publish_notice(payload: NoticePublish, db: Session = Depends(get_db), sessio
         published_at=datetime.now(timezone.utc),
     )
     students = db.scalars(select(Student)).all()
-    targets = [s for s in students if match_rule(payload.target_rule, s)]
+    current = db.get(Student, session.student_id)
+    targets = [s for s in students if match_rule(payload.target_rule, s, session, current)]
     batch_row = NoticeBatch(
         id=uid("batch"),
         title=payload.title,
@@ -96,7 +97,10 @@ def list_batches(db: Session = Depends(get_db), session: CurrentSession = Depend
     return {"list": [batch(row) for row in rows]}
 
 
-def match_rule(rule: dict, student: Student) -> bool:
+def match_rule(rule: dict, student: Student, session: CurrentSession, current: Student | None) -> bool:
+    if session.role == "coordinator":
+        if not current or student.class_name != current.class_name:
+            return False
     kind = (rule or {}).get("kind", "all")
     value = (rule or {}).get("value", "")
     if kind == "all":

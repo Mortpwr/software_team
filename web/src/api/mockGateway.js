@@ -28,6 +28,7 @@ export async function mockRequest({ path, method = "GET", data = {}, session }) 
   if (parts[0] === "applications" && parts.length === 1 && verb === "POST") return createApplication(data, session);
   if (parts[0] === "applications" && parts[1] === "draft" && verb === "GET") return readDb().applicationDraftsByStudent?.[session.studentId] || null;
   if (parts[0] === "applications" && parts[1] === "draft" && verb === "POST") return saveDraft(data, session);
+  if (parts[0] === "applications" && parts[2] === "submit" && verb === "POST") return submitExistingApplication(parts[1], data, session);
   if (parts[0] === "applications" && parts[1]) return applicationDetail(parts[1], session);
 
   if (parts[0] === "honors") return honors(data);
@@ -138,9 +139,16 @@ function markRead(studentId, id) {
 
 function applicationsList(data, session) {
   const db = readDb();
-  let list = data.scope === "workbench" && [ROLES.TEACHER, ROLES.LEADER].includes(session.role)
+  let list = data.scope === "workbench" && [ROLES.TEACHER, ROLES.LEADER, ROLES.COORDINATOR].includes(session.role)
     ? db.applications.slice()
     : db.applications.filter((a) => a.studentId === session.studentId);
+  if (data.scope === "workbench" && session.role === ROLES.COORDINATOR) {
+    const me = db.students.find((s) => s.studentId === session.studentId);
+    const classIds = db.students.filter((s) => s.className === me?.className).map((s) => s.studentId);
+    list = list.filter((a) => classIds.includes(a.studentId));
+  }
+  const draft = db.applicationDraftsByStudent?.[session.studentId];
+  if (draft && data.scope !== "workbench") list = [draft, ...list];
   if (data.status) list = list.filter((a) => a.status === data.status);
   return { list: list.sort((a, b) => b.createdAt - a.createdAt) };
 }
@@ -172,18 +180,71 @@ function createApplication(data, session) {
 }
 
 function saveDraft(data, session) {
+  let draft;
   withDb((db) => {
     db.applicationDraftsByStudent = db.applicationDraftsByStudent || {};
-    db.applicationDraftsByStudent[session.studentId] = { ...data, updatedAt: Date.now() };
+    const previous = db.applicationDraftsByStudent[session.studentId] || {};
+    draft = {
+      id: previous.id || uid("draft"),
+      studentId: session.studentId,
+      type: data.type,
+      subtype: data.subtype,
+      status: APPROVAL.DRAFT,
+      createdAt: previous.createdAt || Date.now(),
+      updatedAt: Date.now(),
+      form: data.form || {},
+      attachments: data.attachments || [],
+      teacherComment: "",
+      decidedAt: null,
+      auditTrail: [
+        ...(previous.auditTrail || []),
+        { at: Date.now(), actor: "学生", action: "保存草稿", remark: data.remark || "" },
+      ],
+    };
+    db.applicationDraftsByStudent[session.studentId] = draft;
     appendAudit(db, session, "application_draft_save", session.studentId);
   });
-  return { ok: true };
+  return draft;
+}
+
+function submitExistingApplication(id, data, session) {
+  let result;
+  withDb((db) => {
+    const draft = db.applicationDraftsByStudent?.[session.studentId];
+    let app = db.applications.find((a) => a.id === id);
+    if (!app && draft?.id === id) {
+      app = { ...draft };
+      db.applications.unshift(app);
+      delete db.applicationDraftsByStudent[session.studentId];
+    }
+    if (!app || app.studentId !== session.studentId) throw new Error("NOT_FOUND");
+    if (![APPROVAL.DRAFT, APPROVAL.REJECTED].includes(app.status)) throw new Error("INVALID_STATE");
+    if (data.type === "盖章申请" && !(data.attachments || []).length) throw new Error("SEAL_ATTACHMENT_REQUIRED");
+    const wasRejected = app.status === APPROVAL.REJECTED;
+    Object.assign(app, {
+      type: data.type,
+      subtype: data.subtype,
+      status: APPROVAL.PENDING,
+      form: data.form || {},
+      attachments: data.attachments || [],
+      teacherComment: "",
+      decidedAt: null,
+      auditTrail: [
+        ...(app.auditTrail || []),
+        { at: Date.now(), actor: "学生", action: wasRejected ? "重提" : "已提交", remark: data.remark || "" },
+        { at: Date.now() + 500, actor: "系统", action: "进入审批队列", remark: "" },
+      ],
+    });
+    appendAudit(db, session, wasRejected ? "application_resubmit" : "application_submit", id);
+    result = app;
+  });
+  return result;
 }
 
 function applicationDetail(id, session) {
   const app = readDb().applications.find((a) => a.id === id);
   if (!app) throw new Error("NOT_FOUND");
-  if (app.studentId !== session.studentId && ![ROLES.TEACHER, ROLES.LEADER].includes(session.role)) throw new Error("FORBIDDEN");
+  if (app.studentId !== session.studentId && ![ROLES.TEACHER, ROLES.LEADER, ROLES.COORDINATOR].includes(session.role)) throw new Error("FORBIDDEN");
   return app;
 }
 

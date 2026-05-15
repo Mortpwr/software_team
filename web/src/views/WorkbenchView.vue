@@ -12,6 +12,9 @@ const applications = ref([]);
 const batches = ref([]);
 const logs = ref([]);
 const leader = ref(null);
+const misses = ref([]);
+const sms = ref([]);
+const selectedApplication = ref(null);
 const noticeForm = reactive({
   title: "",
   summary: "",
@@ -28,6 +31,8 @@ async function load() {
   summary.value = await api.getWorkbenchSummary();
   applications.value = (await api.listApplications({ scope: "workbench" }).catch(() => ({ list: [] }))).list || [];
   batches.value = (await api.listWorkbenchBatches().catch(() => ({ list: [] }))).list || [];
+  misses.value = (await api.listKnowledgeMisses().catch(() => ({ list: [] }))).list || [];
+  sms.value = (await api.listSmsSimulations().catch(() => ({ list: [] }))).list || [];
   logs.value = (await api.listAuditLogs({ limit: 20 }).catch(() => ({ list: [] }))).list || [];
   leader.value = session.value.role === ROLES.LEADER
     ? await api.getLeaderDashboard().catch(() => null)
@@ -54,7 +59,12 @@ async function decide(id, action) {
   const payload = action === "reject" ? { reason: text } : { comment: text };
   await api.decideApplication(id, action, payload);
   toast("操作完成");
+  selectedApplication.value = null;
   await load();
+}
+
+async function openApplication(item) {
+  selectedApplication.value = await api.getApplication(item.id).catch(() => item);
 }
 
 function decisionButtons(item) {
@@ -78,6 +88,8 @@ function decisionLabel(action) {
       <div class="card"><div class="muted">在册学生</div><div style="font-size:28px;font-weight:700">{{ summary?.students }}</div></div>
       <div class="card"><div class="muted">待审批</div><div style="font-size:28px;font-weight:700">{{ summary?.pendingApps }}</div></div>
       <div class="card"><div class="muted">通知批次</div><div style="font-size:28px;font-weight:700">{{ summary?.batches }}</div></div>
+      <div class="card"><div class="muted">未命中词</div><div style="font-size:28px;font-weight:700">{{ misses.length || summary?.miss || 0 }}</div></div>
+      <div class="card"><div class="muted">短信模拟</div><div style="font-size:28px;font-weight:700">{{ sms.length || summary?.sms || 0 }}</div></div>
     </div>
 
     <div v-if="leader" class="section-title">领导看板</div>
@@ -96,6 +108,7 @@ function decisionLabel(action) {
             </div>
             <p>{{ item.studentId }} · {{ item.form?.reason }}</p>
             <div class="row wrap" v-if="session.role === ROLES.TEACHER">
+              <button @click="openApplication(item)">详情</button>
               <button
                 v-for="action in decisionButtons(item)"
                 :key="action"
@@ -128,6 +141,22 @@ function decisionLabel(action) {
       </section>
     </div>
 
+    <section v-if="selectedApplication" class="card">
+      <div class="row between">
+        <h3>审批详情</h3>
+        <span class="tag">{{ selectedApplication.status }}</span>
+      </div>
+      <p>{{ selectedApplication.studentId }} · {{ selectedApplication.type }} · {{ selectedApplication.subtype }}</p>
+      <p class="muted">说明：{{ selectedApplication.form?.reason || "未填写" }}</p>
+      <div class="section-title">审批轨迹</div>
+      <div class="stack">
+        <div v-for="row in selectedApplication.auditTrail || []" :key="`${row.at}-${row.action}`" class="card muted">
+          {{ formatTime(row.at) }} · {{ row.actor }} · {{ row.action }}
+          <span v-if="row.remark"> · {{ row.remark }}</span>
+        </div>
+      </div>
+    </section>
+
     <div class="section-title">批次统计</div>
     <div class="table-wrap">
       <table class="table">
@@ -146,6 +175,15 @@ function decisionLabel(action) {
           </template>
         </tbody>
       </table>
+    </div>
+
+    <div class="section-title">高频未命中词</div>
+    <div class="stack">
+      <div v-for="item in misses.slice(0, 5)" :key="item.keyword" class="card row between">
+        <strong>{{ item.keyword }}</strong>
+        <span class="tag">{{ item.count }} 次</span>
+      </div>
+      <div v-if="!misses.length" class="empty card">暂无未命中词记录</div>
     </div>
 
     <div class="section-title">审计日志</div>

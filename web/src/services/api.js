@@ -17,7 +17,11 @@ export function createApi(sessionRef) {
     completePartyTask: (taskId) => call({ path: `/party/tasks/${taskId}/done`, method: "POST" }),
 
     listApplications: (query = {}) => call({ path: "/applications", data: query }),
+    getApplication: (id) => call({ path: `/applications/${id}` }),
+    getApplicationDraft: () => call({ path: "/applications/draft" }),
+    saveApplicationDraft: (payload) => call({ path: "/applications/draft", method: "POST", data: payload }),
     submitApplication: (payload) => call({ path: "/applications", method: "POST", data: payload }),
+    submitApplicationById: (id, payload) => call({ path: `/applications/${id}/submit`, method: "POST", data: payload }),
     decideApplication: (id, action, payload) => call({
       path: `/workbench/applications/${id}/${action}`,
       method: "POST",
@@ -38,6 +42,8 @@ export function createApi(sessionRef) {
 
     getWorkbenchSummary: () => call({ path: "/workbench/summary" }),
     listWorkbenchBatches: () => call({ path: "/workbench/batches" }),
+    listKnowledgeMisses: () => call({ path: "/workbench/knowledge/misses" }),
+    listSmsSimulations: () => call({ path: "/workbench/sms" }),
     listAuditLogs: (query = {}) => call({ path: "/audit/logs", data: query }),
     getLeaderDashboard: () => call({ path: "/leader/dashboard" }),
   };
