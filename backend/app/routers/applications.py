@@ -1,12 +1,15 @@
 from datetime import datetime, timezone
+from html import escape
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.deps import CurrentSession, get_current_session
-from app.models import Application
+from app.models import Application, Student
 from app.schemas import ApplicationCreate, ApplicationDecision
 from app.services.common import audit, now_ms, uid
 from app.services.permissions import COORDINATOR, LEADER, TEACHER, require_roles, scoped_student_ids
@@ -116,6 +119,34 @@ def get_application(app_id: str, db: Session = Depends(get_db), session: Current
     return application(row)
 
 
+@router.get("/applications/{app_id}/document")
+def application_document(
+    app_id: str,
+    format: str = Query(default="doc"),
+    db: Session = Depends(get_db),
+    session: CurrentSession = Depends(get_current_session),
+) -> Response:
+    row = db.get(Application, app_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="application not found")
+    if row.student_id != session.student_id and session.role not in {"teacher", "leader"}:
+        raise HTTPException(status_code=403, detail="forbidden")
+    student = db.get(Student, row.student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="student not found")
+    body = render_application_document(row, student)
+    audit(db, session, "application_document", app_id, {"format": format})
+    db.commit()
+    if format == "html":
+        return Response(body, media_type="text/html; charset=utf-8")
+    filename = quote(f"{row.type}-{row.subtype or row.id}-{student.name}.doc")
+    return Response(
+        body.encode("utf-8"),
+        media_type="application/msword",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
+    )
+
+
 @router.post("/applications/{app_id}/submit")
 def submit_existing_application(
     app_id: str,
@@ -146,6 +177,53 @@ def submit_existing_application(
     audit(db, session, "application_resubmit" if previous_status == STATUS_REJECTED else "application_submit", row.id)
     db.commit()
     return application(row)
+
+
+def render_application_document(row: Application, student: Student) -> str:
+    form = row.form or {}
+    generated_at = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
+    fields = [
+        ("姓名", student.name),
+        ("学号", student.student_id),
+        ("年级", student.grade),
+        ("专业", student.major),
+        ("班级", student.class_name),
+        ("申请类型", row.type),
+        ("申请子类", row.subtype),
+        ("申请事由", form.get("reason", "")),
+        ("开始日期", form.get("startDate", "")),
+        ("结束日期", form.get("endDate", "")),
+        ("审批状态", row.status),
+        ("审批意见", row.teacher_comment),
+        ("生成时间", generated_at),
+    ]
+    rows = "\n".join(
+        f"<tr><th>{escape(label)}</th><td>{escape(str(value or ''))}</td></tr>"
+        for label, value in fields
+    )
+    return f"""<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>{escape(row.type)}-{escape(row.subtype or row.id)}</title>
+  <style>
+    body {{ font-family: SimSun, serif; color: #111; }}
+    h1 {{ text-align: center; font-size: 22px; }}
+    table {{ width: 100%; border-collapse: collapse; margin-top: 24px; }}
+    th, td {{ border: 1px solid #333; padding: 10px 12px; font-size: 14px; }}
+    th {{ width: 120px; background: #f3f4f6; text-align: left; }}
+    .seal {{ margin-top: 48px; text-align: right; line-height: 2; }}
+  </style>
+</head>
+<body>
+  <h1>学院学生事务申请/证明单</h1>
+  <table>{rows}</table>
+  <div class="seal">
+    学院学生工作办公室<br />
+    {escape(generated_at[:10])}
+  </div>
+</body>
+</html>"""
 
 
 @router.post("/workbench/applications/{app_id}/{action}")

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.db.session import Base, engine
-from app.routers import academic, applications, files, health, honors, knowledge, notices, party, students, workbench
+from app.routers import academic, applications, auth, files, health, honors, knowledge, notices, party, students, workbench
 
 settings = get_settings()
 
@@ -25,6 +25,7 @@ def create_tables() -> None:
 
 
 app.include_router(health.router)
+app.include_router(auth.router, prefix="/api")
 app.include_router(students.router, prefix="/api")
 app.include_router(knowledge.router, prefix="/api")
 app.include_router(applications.router, prefix="/api")

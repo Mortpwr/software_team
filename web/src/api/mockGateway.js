@@ -9,7 +9,12 @@ export async function mockRequest({ path, method = "GET", data = {}, session }) 
   const parts = path.replace(/^\//, "").split("/").filter(Boolean);
   await new Promise((resolve) => setTimeout(resolve, 60));
 
+  if (parts[0] === "auth" && parts[1] === "login" && verb === "POST") return login(data);
+  if (parts[0] === "runtime") return { ok: true, appName: "学院学生综合服务与党团管理平台", env: "mock", authMode: "mock", tokenHours: 12 };
+  if (parts[0] === "session") return { studentId: session.studentId, role: session.role, authMode: "mock", hasToken: Boolean(session.token) };
+
   if (parts[0] === "student" && parts[1] === "me") return getMe(session);
+  if (parts[0] === "students" && parts[1] === "import" && verb === "POST") return importStudents(data, session);
   if (parts[0] === "students") return { list: readDb().students.map((s) => publicStudent(s, ROLES.TEACHER)) };
 
   if (parts[0] === "knowledge" && parts.length === 1 && verb === "GET") return knowledgeList(data);
@@ -47,6 +52,7 @@ export async function mockRequest({ path, method = "GET", data = {}, session }) 
 
   if (parts[0] === "workbench" && parts[1] === "summary") return workbenchSummary(session);
   if (parts[0] === "workbench" && parts[1] === "knowledge" && parts[2] === "misses") return { list: readDb().missKeywords.sort((a, b) => b.count - a.count) };
+  if (parts[0] === "workbench" && parts[1] === "academic" && parts[2] === "risks") return academicRisks(session);
   if (parts[0] === "workbench" && parts[1] === "notices" && parts[2] === "publish" && verb === "POST") return publishNotice(data, session);
   if (parts[0] === "workbench" && parts[1] === "batches") return { list: batchesWithReadStats() };
   if (parts[0] === "workbench" && parts[1] === "sms") return { list: readDb().smsSimulation };
@@ -58,6 +64,20 @@ export async function mockRequest({ path, method = "GET", data = {}, session }) 
   if (parts[0] === "danger" && parts[1] === "reset-db" && verb === "POST") return resetDb();
 
   throw new Error(`ROUTE_NOT_FOUND:${path}`);
+}
+
+function login(data) {
+  const db = readDb();
+  const student = db.students.find((s) => s.studentId === data.studentId);
+  if (!student) throw new Error("UNKNOWN_IDENTITY");
+  if (data.password && data.password !== "demo123456") throw new Error("INVALID_CREDENTIAL");
+  return {
+    token: `mock-token-${student.studentId}-${Date.now()}`,
+    studentId: student.studentId,
+    role: data.role || ROLES.STUDENT,
+    student: publicStudent(student, data.role || ROLES.STUDENT),
+    expiresInHours: 12,
+  };
 }
 
 function getMe(session) {
@@ -81,6 +101,82 @@ function publicStudent(s, role) {
   if (role === ROLES.TEACHER) return { ...base, phone: s.phone, phoneMasked: maskPhone(s.phone), hometown: s.hometown, idCardMasked: "**************" };
   if (role === ROLES.LEADER) return { ...base, phoneMasked: maskPhone(s.phone), hometown: s.hometown?.slice(0, 1) + "**" };
   return { ...base, phoneMasked: maskPhone(s.phone) };
+}
+
+async function importStudents(data, session) {
+  requireTeacher(session);
+  const file = typeof FormData !== "undefined" && data instanceof FormData ? data.get("file") : null;
+  const dryRun = data.get("dryRun") !== "false";
+  const overwrite = data.get("overwrite") === "true";
+  const rows = parseStudentCsv(file ? await file.text() : "");
+  const errors = [];
+  const seen = new Set();
+  const validRows = [];
+  const db = readDb();
+  rows.forEach((row) => {
+    const missing = ["studentId", "name", "grade", "major", "className"].filter((key) => !row.data[key]);
+    if (missing.length) {
+      errors.push({ row: row.row, field: missing.join(","), message: "必填字段缺失" });
+      return;
+    }
+    if (seen.has(row.data.studentId)) {
+      errors.push({ row: row.row, field: "studentId", message: "导入文件内学号重复" });
+      return;
+    }
+    seen.add(row.data.studentId);
+    if (db.students.some((item) => item.studentId === row.data.studentId) && !overwrite) {
+      errors.push({ row: row.row, field: "studentId", message: "学号已存在，需勾选覆盖更新" });
+      return;
+    }
+    validRows.push(row.data);
+  });
+  const existing = new Set(db.students.map((item) => item.studentId));
+  const result = {
+    ok: !errors.length,
+    dryRun: true,
+    total: rows.length,
+    created: validRows.filter((item) => !existing.has(item.studentId)).length,
+    updated: validRows.filter((item) => existing.has(item.studentId)).length,
+    errors,
+    preview: validRows.slice(0, 5),
+  };
+  if (dryRun || errors.length) return result;
+  withDb((draft) => {
+    validRows.forEach((item) => {
+      const found = draft.students.find((student) => student.studentId === item.studentId);
+      if (found) Object.assign(found, item);
+      else draft.students.push({ ...item, extension: {} });
+    });
+    appendAudit(draft, session, "students_import", file?.name || "students.csv");
+  });
+  return { ...result, ok: true, dryRun: false, errors: [] };
+}
+
+function parseStudentCsv(text) {
+  const lines = text.trim().split(/\r?\n/).filter(Boolean);
+  if (!lines.length) return [];
+  const headers = lines[0].split(",").map((item) => item.trim());
+  const aliases = {
+    studentId: ["studentId", "student_id", "学号"],
+    name: ["name", "姓名"],
+    grade: ["grade", "年级"],
+    major: ["major", "专业"],
+    className: ["className", "class_name", "班级"],
+    nation: ["nation", "民族"],
+    phone: ["phone", "手机号", "联系方式"],
+    politicalStatus: ["politicalStatus", "political_status", "政治面貌"],
+    tutor: ["tutor", "导师"],
+    hometown: ["hometown", "生源地", "户籍地"],
+  };
+  return lines.slice(1).map((line, index) => {
+    const values = line.split(",").map((item) => item.trim());
+    const raw = Object.fromEntries(headers.map((header, i) => [header, values[i] || ""]));
+    const normalized = {};
+    Object.entries(aliases).forEach(([target, names]) => {
+      normalized[target] = names.map((name) => raw[name]).find(Boolean) || "";
+    });
+    return { row: index + 2, data: normalized };
+  });
 }
 
 function knowledgeList({ q, category }) {
@@ -413,6 +509,29 @@ function academicReport(studentId) {
     suggestions: modules.filter((m) => m.gap > 0).map((m) => ({ focus: m.name, hint: `仍需约 ${m.gap} 学分，请关注 ${m.name} 相关课程。` })),
     uploads: progress.uploads || [],
   };
+}
+
+function academicRisks(session) {
+  if (![ROLES.TEACHER, ROLES.LEADER].includes(session.role)) throw new Error("FORBIDDEN");
+  const rows = readDb().students.map((student) => {
+    const report = academicReport(student.studentId);
+    if (!report.ok) {
+      return { ...student, riskLevel: "数据缺失", totalGap: 0, gaps: [] };
+    }
+    const gaps = report.modules.filter((item) => item.gap > 0);
+    return {
+      studentId: student.studentId,
+      name: student.name,
+      grade: student.grade,
+      major: student.major,
+      className: student.className,
+      riskLevel: report.riskLevel,
+      totalGap: gaps.reduce((sum, item) => sum + item.gap, 0),
+      gaps,
+    };
+  });
+  const order = { 高: 0, 中: 1, 低: 2, 数据缺失: 3 };
+  return { list: rows.sort((a, b) => (order[a.riskLevel] ?? 9) - (order[b.riskLevel] ?? 9) || b.totalGap - a.totalGap) };
 }
 
 function saveAcademicProgress(data, session) {

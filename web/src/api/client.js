@@ -7,6 +7,12 @@ const config = {
 
 export function configureApi(next) {
   Object.assign(config, next || {});
+  if (next?.mode) localStorage.setItem("ss_web_api_mode", next.mode);
+  if (next?.baseUrl !== undefined) localStorage.setItem("ss_web_api_base_url", next.baseUrl);
+}
+
+export function getApiConfig() {
+  return { ...config };
 }
 
 function isFormData(data) {

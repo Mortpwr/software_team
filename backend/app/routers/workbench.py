@@ -9,6 +9,8 @@ from app.services.serializers import audit_log
 
 router = APIRouter(tags=["workbench"])
 
+RISK_ORDER = {"高": 0, "中": 1, "低": 2, "数据缺失": 3}
+
 
 def knowledge_miss_rows(db: Session, limit: int) -> list[dict]:
     count_expr = func.count().label("count")
@@ -112,17 +114,52 @@ def sms_simulation(db: Session = Depends(get_db), session: CurrentSession = Depe
 
 
 def count_high_risk_students(db: Session) -> int:
-    students = db.scalars(select(Student)).all()
-    total = 0
-    for student in students:
-        plan = db.get(AcademicPlan, f"{student.grade}|{student.major}")
-        progress = db.get(AcademicProgress, student.student_id)
-        if not plan or not progress:
-            continue
-        progress_by_key = {item.get("key"): item for item in (progress.modules or [])}
-        for module in plan.modules or []:
-            earned = float(progress_by_key.get(module.get("key"), {}).get("earned", 0))
-            if max(0, float(module.get("required", 0)) - earned) >= 4:
-                total += 1
-                break
-    return total
+    return sum(1 for row in academic_risk_rows(db) if row["riskLevel"] == "高")
+
+
+@router.get("/workbench/academic/risks")
+def academic_risks(db: Session = Depends(get_db), session: CurrentSession = Depends(get_current_session)) -> dict:
+    if session.role not in {"teacher", "leader"}:
+        raise HTTPException(status_code=403, detail="forbidden")
+    return {"list": academic_risk_rows(db)}
+
+
+def academic_risk_rows(db: Session) -> list[dict]:
+    rows = [academic_risk_for_student(db, student) for student in db.scalars(select(Student)).all()]
+    return sorted(rows, key=lambda item: (RISK_ORDER.get(item["riskLevel"], 9), -item["totalGap"], item["studentId"]))
+
+
+def academic_risk_for_student(db: Session, student: Student) -> dict:
+    plan = db.get(AcademicPlan, f"{student.grade}|{student.major}")
+    progress = db.get(AcademicProgress, student.student_id)
+    if not plan or not progress:
+        return {
+            "studentId": student.student_id,
+            "name": student.name,
+            "grade": student.grade,
+            "major": student.major,
+            "className": student.class_name,
+            "riskLevel": "数据缺失",
+            "totalGap": 0,
+            "gaps": [],
+        }
+    progress_by_key = {item.get("key"): item for item in (progress.modules or [])}
+    gaps = []
+    for module in plan.modules or []:
+        earned = float(progress_by_key.get(module.get("key"), {}).get("earned", 0))
+        required = float(module.get("required", 0))
+        gap = max(0, required - earned)
+        if gap > 0:
+            gaps.append({"key": module.get("key"), "name": module.get("name"), "required": required, "earned": earned, "gap": gap})
+    total_gap = sum(item["gap"] for item in gaps)
+    risk_level = "高" if any(item["gap"] >= 4 for item in gaps) else "中" if any(item["gap"] >= 2 for item in gaps) else "低"
+    return {
+        "studentId": student.student_id,
+        "name": student.name,
+        "grade": student.grade,
+        "major": student.major,
+        "className": student.class_name,
+        "riskLevel": risk_level,
+        "totalGap": total_gap,
+        "gaps": gaps,
+    }

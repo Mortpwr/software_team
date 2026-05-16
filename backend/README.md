@@ -13,6 +13,12 @@ cp .env.example .env
 uvicorn app.main:app --reload --port 8000
 ```
 
+也可以在仓库根目录直接运行：
+
+```bash
+./scripts/dev-backend.sh
+```
+
 本机开发数据库约定：
 
 ```text
@@ -33,6 +39,28 @@ python -m app.seed
 AUTO_CREATE_TABLES=true
 ```
 
+文件上传相关配置：
+
+```text
+UPLOAD_DIR=backend/storage/uploads
+MAX_UPLOAD_BYTES=31457280
+```
+
+认证相关配置：
+
+```text
+AUTH_MODE=header
+AUTH_SECRET=dev-secret-change-me
+AUTH_TOKEN_HOURS=12
+AUTH_DEMO_PASSWORD=demo123456
+```
+
+接口冒烟检查：
+
+```bash
+./scripts/smoke-backend.sh
+```
+
 ## 前端切换
 
 前端统一走 `web/src/api/client.js`。对接时将 API mode 设置为 `remote`，baseUrl 指向：
@@ -41,9 +69,11 @@ AUTO_CREATE_TABLES=true
 http://127.0.0.1:8000/api
 ```
 
-当前后端用请求头临时模拟登录态：
+开发阶段支持两种认证模式。`AUTH_MODE=header` 时仍可用请求头模拟登录态：
 
 - `X-Student-Id`
 - `X-Role`: `student` / `teacher` / `coordinator` / `leader`
 
-后续接微信登录或统一认证时，只需要替换 `app/deps.py` 中的 `get_current_session()`。
+真实联调时可调用 `POST /api/auth/login` 获取 Bearer Token，再由业务接口通过 `Authorization: Bearer <token>` 识别当前用户。若设置 `AUTH_MODE=token`，未携带有效 Token 的业务请求会返回 `401`。
+
+后续接微信登录或统一认证时，只需要替换 `app/routers/auth.py` 与 `app/deps.py` 中的认证实现，业务路由不需要感知认证来源。

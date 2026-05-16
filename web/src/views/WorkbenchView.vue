@@ -18,6 +18,10 @@ const selectedApplication = ref(null);
 const knowledgeItems = ref([]);
 const students = ref([]);
 const honors = ref([]);
+const academicRisks = ref([]);
+const studentImportFile = ref(null);
+const studentImportOverwrite = ref(false);
+const studentImportResult = ref(null);
 const noticeForm = reactive({
   title: "",
   summary: "",
@@ -64,6 +68,7 @@ async function load() {
   knowledgeItems.value = (await api.listKnowledgeAdmin().catch(() => ({ list: [] }))).list || [];
   students.value = (await api.listStudents().catch(() => ({ list: [] }))).list || [];
   honors.value = (await api.listHonors().catch(() => ({ list: [] }))).list || [];
+  academicRisks.value = (await api.listAcademicRisks().catch(() => ({ list: [] }))).list || [];
   if (!partyForm.studentId && students.value.length) partyForm.studentId = students.value[0].studentId;
   logs.value = (await api.listAuditLogs({ limit: 20 }).catch(() => ({ list: [] }))).list || [];
   leader.value = session.value.role === ROLES.LEADER
@@ -208,6 +213,36 @@ async function exportStudents() {
   toast("学生画像导出已开始");
 }
 
+function onStudentImportFile(event) {
+  studentImportFile.value = event.target.files?.[0] || null;
+  studentImportResult.value = null;
+}
+
+async function previewStudentImport() {
+  if (!studentImportFile.value) {
+    toast("请选择 CSV 或 XLSX 文件");
+    return;
+  }
+  studentImportResult.value = await api.importStudents(studentImportFile.value, {
+    dryRun: true,
+    overwrite: studentImportOverwrite.value,
+  });
+  toast(studentImportResult.value.errors?.length ? "导入预检发现错误" : "导入预检通过");
+}
+
+async function commitStudentImport() {
+  if (!studentImportFile.value) {
+    toast("请选择 CSV 或 XLSX 文件");
+    return;
+  }
+  studentImportResult.value = await api.importStudents(studentImportFile.value, {
+    dryRun: false,
+    overwrite: studentImportOverwrite.value,
+  });
+  toast(studentImportResult.value.ok ? "学生数据已导入" : "导入失败，请先处理错误行");
+  if (studentImportResult.value.ok) await load();
+}
+
 function resetHonorForm() {
   Object.assign(honorForm, {
     id: "",
@@ -223,6 +258,12 @@ function resetHonorForm() {
 
 function editHonor(item) {
   Object.assign(honorForm, item);
+}
+
+function riskClass(level) {
+  if (level === "高") return "orange";
+  if (level === "低") return "green";
+  return "gray";
 }
 
 async function saveHonor() {
@@ -338,7 +379,58 @@ async function saveHonor() {
         <h3>学生画像导出</h3>
         <button class="primary" @click="exportStudents">导出 CSV</button>
       </div>
-      <p class="muted">导出默认使用脱敏手机号，后续可扩展 Excel 导入和字段白名单。</p>
+      <p class="muted">导出默认使用脱敏手机号；导入支持 CSV，后端也预留 XLSX 解析能力。</p>
+      <div class="form-grid">
+        <label class="span-2">
+          学生数据文件
+          <input type="file" accept=".csv,.xlsx" @change="onStudentImportFile" />
+        </label>
+        <label class="row">
+          <input v-model="studentImportOverwrite" type="checkbox" />
+          覆盖已有学号
+        </label>
+        <div class="row wrap">
+          <button @click="previewStudentImport">预检导入</button>
+          <button class="primary" @click="commitStudentImport">确认导入</button>
+        </div>
+      </div>
+      <div v-if="studentImportResult" class="stack">
+        <p class="muted">
+          共 {{ studentImportResult.total }} 行，预计新增 {{ studentImportResult.created }}，更新 {{ studentImportResult.updated }}
+        </p>
+        <div v-if="studentImportResult.errors?.length" class="card">
+          <strong>错误行</strong>
+          <p v-for="error in studentImportResult.errors.slice(0, 5)" :key="`${error.row}-${error.field}`" class="muted">
+            第 {{ error.row }} 行 · {{ error.field }} · {{ error.message }}
+          </p>
+        </div>
+        <div v-else class="card">
+          <strong>预览</strong>
+          <p v-for="row in studentImportResult.preview || []" :key="row.studentId" class="muted">
+            {{ row.studentId }} · {{ row.name }} · {{ row.grade }} · {{ row.major }} · {{ row.className }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section v-if="[ROLES.TEACHER, ROLES.LEADER].includes(session.role)">
+      <div class="section-title">学业风险学生</div>
+      <div class="stack">
+        <article v-for="item in academicRisks.slice(0, 6)" :key="item.studentId" class="card">
+          <div class="row between">
+            <strong>{{ item.name }} · {{ item.studentId }}</strong>
+            <span class="tag" :class="riskClass(item.riskLevel)">风险 {{ item.riskLevel }}</span>
+          </div>
+          <p class="muted">{{ item.grade }} · {{ item.major }} · {{ item.className }} · 总缺口 {{ item.totalGap }}</p>
+          <p v-if="item.gaps?.length">
+            <span v-for="gap in item.gaps.slice(0, 3)" :key="gap.key" class="tag gray">
+              {{ gap.name }} 缺 {{ gap.gap }}
+            </span>
+          </p>
+          <p v-else class="muted">暂无明显学分缺口或缺少学业数据。</p>
+        </article>
+        <div v-if="!academicRisks.length" class="empty card">暂无学业风险数据</div>
+      </div>
     </section>
 
     <div class="grid cols-2">

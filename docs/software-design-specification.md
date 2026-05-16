@@ -1,12 +1,12 @@
 # 学院学生综合服务与党团管理平台软件设计规格说明书
 
-文档编号：学院学生综合服务与党团管理平台 – SDS – 2.0
+文档编号：学院学生综合服务与党团管理平台 – SDS – 2.5
 
 课程名称：软件工程导论  
 项目名称：学院学生综合服务与党团管理平台  
 成员信息：李煜南、许珀铭、朱启哲、赵子涵  
 提交日期：2026-05-15  
-文档版本：V2.0
+文档版本：V2.5
 
 ## 文档变更历史记录
 
@@ -23,6 +23,11 @@
 | 9 | 2026-05-15 | 项目组 | 完成第 7 轮迭代：党团流程管理，补充管理端学生阶段推进入口 | V1.8 |
 | 10 | 2026-05-15 | 项目组 | 完成第 8 轮迭代：学生画像与导出，补充脱敏 CSV 导出和前端导出入口 | V1.9 |
 | 11 | 2026-05-15 | 项目组 | 完成第 9 轮迭代：荣誉展示管理，补充荣誉条目新增、编辑和管理端维护入口 | V2.0 |
+| 12 | 2026-05-16 | 项目组 | 完成第 10 轮迭代：学业预警增强，补充老师/领导端风险学生列表和缺口模块展示 | V2.1 |
+| 13 | 2026-05-16 | 项目组 | 完成第 11 轮迭代：真实认证与部署准备，补充运行时/会话接口、环境变量样例、启动脚本和前端 API 模式切换 | V2.2 |
+| 14 | 2026-05-16 | 项目组 | 完成第 12 轮迭代：真实认证闭环，补充登录签发 Token、Bearer 会话解析和 Remote 模式登录表单 | V2.3 |
+| 15 | 2026-05-16 | 项目组 | 完成第 13 轮迭代：学生数据批量导入，补充 CSV/XLSX 导入预检、覆盖更新和行号级错误提示 | V2.4 |
+| 16 | 2026-05-16 | 项目组 | 完成第 14 轮迭代：证明模板生成，补充申请单 Word 兼容文档生成与学生端下载入口 | V2.5 |
 
 ## 迭代记录
 
@@ -145,6 +150,66 @@
 | 主要变更 | 后端新增荣誉条目创建和更新接口，仅管理老师可操作；mock 网关同步支持新增和编辑荣誉；前端工作台新增荣誉展示维护表单和荣誉条目列表，管理老师可新增、编辑荣誉名称、获奖人、年份、类别、专业、年级和简介。 |
 | 验证方式 | 已执行 `python3 -m compileall backend/app`、FastAPI TestClient 荣誉创建/更新/学生拒绝访问接口冒烟、`npm run build` 前端构建验证。 |
 | 遗留问题 | 荣誉附件上传和可见范围控制尚未接入；删除/下线能力暂未实现，后续可加入审计确认流程。 |
+
+### IR-010 学业预警增强
+
+| 字段 | 内容 |
+| --- | --- |
+| 迭代编号 | IR-010 学业预警增强 |
+| 迭代日期 | 2026-05-16 |
+| 迭代目标 | 在学生端培养方案自查基础上，补充老师/领导端学业风险学生列表，使学业预警从个人查看扩展到管理端风险识别。 |
+| 实现范围 | `backend/app/routers/workbench.py`、`web/src/api/mockGateway.js`、`web/src/services/api.js`、`web/src/views/WorkbenchView.vue`。 |
+| 主要变更 | 后端新增 `/workbench/academic/risks` 接口，仅管理老师和学院领导可访问；接口按培养方案与学生已获学分计算风险等级、总缺口和缺口模块，并按高风险优先排序；mock 网关同步实现风险列表；前端工作台新增“学业风险学生”列表，展示风险等级、总缺口和主要缺口模块。 |
+| 验证方式 | 已执行 `python3 -m compileall backend/app`、FastAPI TestClient 教师/领导访问与学生拒绝访问接口冒烟、`npm run build` 前端构建验证。 |
+| 遗留问题 | 成绩单 PDF 解析和人工校验入口尚未实现；培养方案维护仍依赖种子数据/后台数据，后续需要管理端维护页面。 |
+
+### IR-011 真实认证与部署准备
+
+| 字段 | 内容 |
+| --- | --- |
+| 迭代编号 | IR-011 真实认证与部署准备 |
+| 迭代日期 | 2026-05-16 |
+| 迭代目标 | 将课程演示系统进一步整理为可部署原型，明确环境变量、启动方式、运行时信息和当前 header 模拟认证边界。 |
+| 实现范围 | `backend/app/core/config.py`、`backend/app/routers/health.py`、`backend/.env.example`、`backend/README.md`、`scripts/dev-backend.sh`、`scripts/dev-web.sh`、`scripts/smoke-backend.sh`、`web/src/api/client.js`、`web/src/services/api.js`、`web/src/App.vue`、`web/README.md`。 |
+| 主要变更 | 后端新增 `/api/runtime` 运行时配置摘要接口和 `/api/session` 当前会话接口；环境变量样例补充 `AUTH_MODE`、`UPLOAD_DIR`、`MAX_UPLOAD_BYTES`；新增后端启动、前端启动和后端冒烟脚本；前端 API Client 支持读取/持久化 API 模式配置；页面右上角展示当前 `mock/remote` 模式并提供快速切换按钮。 |
+| 验证方式 | 已执行 `python3 -m compileall backend/app`、`./scripts/smoke-backend.sh`、FastAPI TestClient runtime/session 冒烟、`npm run build` 前端构建验证。 |
+| 遗留问题 | 当前认证仍为 header 模拟模式，后续接入微信或统一认证时需替换 `get_current_session()`；部署脚本仍为开发/课程演示脚本，生产环境还需 systemd、Nginx 或容器编排配置。 |
+
+### IR-012 真实认证闭环
+
+| 字段 | 内容 |
+| --- | --- |
+| 迭代编号 | IR-012 真实认证闭环 |
+| 迭代日期 | 2026-05-16 |
+| 迭代目标 | 将系统从单纯 Header 模拟登录推进到可登录、可签发 Token、业务接口可解析 Bearer Token 的轻量认证闭环，为后续对接微信或统一身份认证预留替换点。 |
+| 实现范围 | `backend/app/routers/auth.py`、`backend/app/services/auth_tokens.py`、`backend/app/deps.py`、`backend/app/core/config.py`、`backend/app/main.py`、`backend/.env.example`、`scripts/smoke-backend.sh`、`web/src/App.vue`、`web/src/services/api.js`、`web/src/api/mockGateway.js`、`backend/README.md`、`web/README.md`。 |
+| 主要变更 | 后端新增 `/api/auth/login` 登录接口，基于学生身份、角色和开发口令签发 HMAC Token；认证依赖优先解析 `Authorization: Bearer <token>`，并支持 `AUTH_MODE=token` 时拒绝无效或缺失 Token；运行时接口补充 Token 有效期；前端 Remote 模式新增登录表单，登录成功后保存 Token 并由统一请求层自动携带；Mock 模式保留角色/学生快捷切换用于课堂演示。 |
+| 验证方式 | 已执行 `python3 -m compileall backend/app`、`./scripts/smoke-backend.sh`、`AUTH_MODE=token` 下 FastAPI TestClient 登录/Token 会话冒烟、`npm run build` 前端构建验证。 |
+| 遗留问题 | 当前仍为课程演示口令认证，不具备正式统一身份认证能力；角色授权仍由登录请求传入，后续应接入真实账号角色映射表或学校统一认证回调。 |
+
+### IR-013 学生数据批量导入
+
+| 字段 | 内容 |
+| --- | --- |
+| 迭代编号 | IR-013 学生数据批量导入 |
+| 迭代日期 | 2026-05-16 |
+| 迭代目标 | 补齐需求文档中学生基础信息初始化导入能力，使管理老师可以通过文件批量维护学生画像基础字段，并在导入前获得可理解的错误反馈。 |
+| 实现范围 | `backend/app/routers/students.py`、`backend/requirements.txt`、`web/src/services/api.js`、`web/src/api/mockGateway.js`、`web/src/views/WorkbenchView.vue`。 |
+| 主要变更 | 后端新增 `/api/students/import` 接口，仅管理老师可访问；接口支持 `dryRun` 预检和 `overwrite` 覆盖更新参数，解析 CSV 并预留 XLSX 解析能力；导入校验包含必填字段、文件内学号重复、已有学号未授权覆盖等行号级错误；确认导入时新增或更新学生基础画像并记录审计日志；前端工作台在学生画像区域新增文件选择、覆盖选项、预检导入、确认导入和错误/预览结果展示；mock 网关同步支持同一导入契约。 |
+| 验证方式 | 已执行 `python3 -m compileall backend/app`、FastAPI TestClient 学生导入预检/重复错误/学生拒绝访问接口冒烟、`./scripts/smoke-backend.sh`、`npm run build` 前端构建验证。 |
+| 遗留问题 | XLSX 解析依赖 `openpyxl`，部署环境需按 `requirements.txt` 安装；字段级导入白名单和高风险覆盖二次确认仍需在后续权限迭代中细化。 |
+
+### IR-014 证明模板生成
+
+| 字段 | 内容 |
+| --- | --- |
+| 迭代编号 | IR-014 证明模板生成 |
+| 迭代日期 | 2026-05-16 |
+| 迭代目标 | 将证明/请假/盖章申请从“只记录表单与审批状态”推进到可基于学生基础信息和申请内容生成可下载文档，支撑首版电子证明闭环演示。 |
+| 实现范围 | `backend/app/routers/applications.py`、`web/src/services/api.js`、`web/src/views/ApplyView.vue`。 |
+| 主要变更 | 后端新增 `/api/applications/{id}/document` 文档生成接口，按申请单、学生基础画像、审批状态和审批意见渲染学院学生事务申请/证明单；接口支持学生本人、管理老师和学院领导在权限范围内访问，并记录文档生成审计日志；默认返回 Word 兼容 `.doc` 文件，另支持 `format=html` 预览；学生端申请列表和详情页新增“生成文档”下载入口。 |
+| 验证方式 | 已执行 `python3 -m compileall backend/app`、FastAPI TestClient 申请文档生成/越权拒绝接口冒烟、`./scripts/smoke-backend.sh`、`npm run build` 前端构建验证。 |
+| 遗留问题 | 当前生成的是 Word 兼容 HTML 文档，尚未接入正式 PDF 渲染、电子签章或学院公章授权；模板内容仍为内置基础版，后续需接入可维护模板和字段映射配置。 |
 
 ## 目录
 

@@ -61,3 +61,17 @@ location.reload();
 localStorage.setItem("ss_web_api_mode", "mock");
 location.reload();
 ```
+
+页面右上角也提供 `Mock / Remote` 快速切换按钮。Remote 默认指向：
+
+```text
+http://127.0.0.1:8000/api
+```
+
+切换到 `Remote` 后，页面右上角会显示登录表单。开发演示口令默认是：
+
+```text
+demo123456
+```
+
+登录成功后前端保存后端签发的 Bearer Token，并由统一请求层自动带到后续接口。Mock 模式仍保留角色与学生快捷切换，方便课堂演示和前端独立调试。

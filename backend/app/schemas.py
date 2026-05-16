@@ -9,6 +9,12 @@ class SessionInfo(BaseModel):
     role: str = "student"
 
 
+class LoginRequest(BaseModel):
+    student_id: str = Field(alias="studentId")
+    role: str = "student"
+    password: str = ""
+
+
 class ApplicationCreate(BaseModel):
     type: str
     subtype: str = ""

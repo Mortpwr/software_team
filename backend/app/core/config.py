@@ -16,6 +16,10 @@ class Settings:
         self.auto_create_tables = os.getenv("AUTO_CREATE_TABLES", "false").lower() in {"1", "true", "yes"}
         self.upload_dir = os.getenv("UPLOAD_DIR", str(Path(__file__).resolve().parents[2] / "storage" / "uploads"))
         self.max_upload_bytes = int(os.getenv("MAX_UPLOAD_BYTES", str(30 * 1024 * 1024)))
+        self.auth_mode = os.getenv("AUTH_MODE", "header")
+        self.auth_secret = os.getenv("AUTH_SECRET", "dev-secret-change-me")
+        self.auth_token_hours = int(os.getenv("AUTH_TOKEN_HOURS", "12"))
+        self.auth_demo_password = os.getenv("AUTH_DEMO_PASSWORD", "demo123456")
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -1,4 +1,4 @@
-import { request as rawRequest, requestBlob } from "../api/client.js";
+import { configureApi, getApiConfig, request as rawRequest, requestBlob } from "../api/client.js";
 
 function apiPath(path) {
   if (!path) return "";
@@ -13,9 +13,21 @@ export function createApi(sessionRef) {
 
   return {
     request: call,
+    getApiConfig,
+    configureApi,
+    login: (payload) => call({ path: "/auth/login", method: "POST", data: payload }),
+    getRuntime: () => call({ path: "/runtime" }),
+    getSessionInfo: () => call({ path: "/session" }),
     getCurrentStudent: () => call({ path: "/student/me" }),
     listStudents: () => call({ path: "/students" }),
     exportStudents: () => requestBlob({ path: "/students/export", session: sessionRef.value }),
+    importStudents: (file, options = {}) => {
+      const data = new FormData();
+      data.append("file", file);
+      data.append("dryRun", String(options.dryRun !== false));
+      data.append("overwrite", String(Boolean(options.overwrite)));
+      return call({ path: "/students/import", method: "POST", data });
+    },
 
     searchKnowledge: (query) => call({ path: "/knowledge", data: query }),
     recordKnowledgeMiss: (keyword) => call({ path: "/knowledge/miss", method: "POST", data: { keyword } }),
@@ -35,6 +47,7 @@ export function createApi(sessionRef) {
 
     listApplications: (query = {}) => call({ path: "/applications", data: query }),
     getApplication: (id) => call({ path: `/applications/${id}` }),
+    downloadApplicationDocument: (id) => requestBlob({ path: `/applications/${id}/document`, data: { format: "doc" }, session: sessionRef.value }),
     getApplicationDraft: () => call({ path: "/applications/draft" }),
     saveApplicationDraft: (payload) => call({ path: "/applications/draft", method: "POST", data: payload }),
     submitApplication: (payload) => call({ path: "/applications", method: "POST", data: payload }),
@@ -74,6 +87,7 @@ export function createApi(sessionRef) {
     listWorkbenchBatches: () => call({ path: "/workbench/batches" }),
     listKnowledgeMisses: () => call({ path: "/workbench/knowledge/misses" }),
     listSmsSimulations: () => call({ path: "/workbench/sms" }),
+    listAcademicRisks: () => call({ path: "/workbench/academic/risks" }),
     listAuditLogs: (query = {}) => call({ path: "/audit/logs", data: query }),
     getLeaderDashboard: () => call({ path: "/leader/dashboard" }),
   };
