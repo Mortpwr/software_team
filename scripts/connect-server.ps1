@@ -4,11 +4,11 @@
 param(
     [string]$User = "root",
     [Parameter(Mandatory = $true)]
-    [string]$Host
+    [string]$ServerIp
 )
 
 Write-Host ""
-Write-Host "即将连接: ${User}@${Host}" -ForegroundColor Cyan
+Write-Host "即将连接: ${User}@${ServerIp}" -ForegroundColor Cyan
 Write-Host "提示："
 Write-Host "  1) 第一次会问 yes/no，输入 yes"
 Write-Host "  2) 输入密码时屏幕不显示字符，输完直接回车"
@@ -17,4 +17,4 @@ Write-Host "     cd /opt/student_service/software_team"
 Write-Host "     sudo bash scripts/server/update-app.sh"
 Write-Host ""
 
-ssh "${User}@${Host}"
+ssh "${User}@${ServerIp}"
