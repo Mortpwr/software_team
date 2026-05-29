@@ -22,7 +22,7 @@ from app.models import AcademicPlan, AcademicProgress, Student
 
 from app.schemas import AcademicPlanPut, AcademicProgressPut, TranscriptMetaCreate
 
-from app.services.academic_catalog import enrich_plan_payload
+from app.services.academic_catalog import enrich_plan_payload, official_reference_payload
 from app.services.common import audit
 
 from app.services.serializers import academic_plan, academic_progress
@@ -50,7 +50,10 @@ def plan(db: Session = Depends(get_db), session: CurrentSession = Depends(get_cu
     key = f"{student.grade}|{student.major}"
 
     plan_payload = enrich_plan_payload(academic_plan(db.get(AcademicPlan, key)), student.grade, student.major)
-    return {"plan": plan_payload, "progress": academic_progress(db.get(AcademicProgress, session.student_id))}
+    response = {"plan": plan_payload, "progress": academic_progress(db.get(AcademicProgress, session.student_id))}
+    if plan_payload and not plan_payload.get("courseMap"):
+        response["referencePlan"] = official_reference_payload()
+    return response
 
 
 
@@ -99,6 +102,7 @@ def report(db: Session = Depends(get_db), session: CurrentSession = Depends(get_
         "overview": plan_row.get("overview"),
         "courseMap": plan_row.get("courseMap"),
         "graduationRequirements": plan_row.get("graduationRequirements", []),
+        "referencePlan": official_reference_payload() if not plan_row.get("courseMap") else None,
         "totalRequired": total_required,
         "totalEarned": total_earned,
         "totalGap": total_gap,

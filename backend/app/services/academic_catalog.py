@@ -267,6 +267,10 @@ def official_plan_for(grade: str, major: str) -> dict | None:
     return None
 
 
+def default_official_plan() -> dict:
+    return OFFICIAL_PLANS[0]
+
+
 def ensure_academic_official_content(db: Session) -> None:
     for plan in OFFICIAL_PLANS:
         row = db.get(AcademicPlan, plan["key"])
@@ -288,3 +292,15 @@ def enrich_plan_payload(payload: dict | None, grade: str = "", major: str = "") 
         "graduationRequirements": official["graduationRequirements"],
     }
 
+
+def official_reference_payload() -> dict:
+    plan = default_official_plan()
+    return {
+        "key": plan["key"],
+        "grade": plan["grade"],
+        "major": plan["major"],
+        "modules": plan["modules"],
+        "overview": plan["overview"],
+        "courseMap": plan["courseMap"],
+        "graduationRequirements": plan["graduationRequirements"],
+    }

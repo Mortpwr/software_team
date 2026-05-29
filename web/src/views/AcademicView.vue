@@ -1,5 +1,5 @@
 <script setup>
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { ROLES } from "../data/seed.js";
 import { go } from "../state/routes.js";
 
@@ -11,13 +11,28 @@ const planPayload = ref(null);
 const lastTranscriptFile = ref(null);
 
 const isStudent = computed(() => session.value.role === ROLES.STUDENT);
-const overview = computed(() => report.value?.overview || planPayload.value?.plan?.overview || null);
-const courseMap = computed(() => report.value?.courseMap || planPayload.value?.plan?.courseMap || null);
+const referencePlan = computed(() => report.value?.referencePlan || planPayload.value?.referencePlan || null);
+const overview = computed(() => report.value?.overview || planPayload.value?.plan?.overview || referencePlan.value?.overview || null);
+const courseMap = computed(() => report.value?.courseMap || planPayload.value?.plan?.courseMap || referencePlan.value?.courseMap || null);
 const moduleGroups = computed(() => report.value?.moduleGroups || []);
+const graduationRequirements = computed(() => report.value?.graduationRequirements?.length ? report.value.graduationRequirements : referencePlan.value?.graduationRequirements || []);
+const isReferenceCatalog = computed(() => Boolean(referencePlan.value) && !report.value?.courseMap && !planPayload.value?.plan?.courseMap);
 
 onMounted(load);
+watch(() => session.value.token, (token) => {
+  if (token) load();
+  else {
+    report.value = { ok: false, message: "请先登录后查看学业分析。" };
+    planPayload.value = null;
+  }
+});
 
 async function load() {
+  if (!session.value.token) {
+    report.value = { ok: false, message: "请先登录后查看学业分析。" };
+    planPayload.value = null;
+    return;
+  }
   try {
     const [reportRes, planRes] = await Promise.all([
       api.getAcademicReport(),
@@ -110,6 +125,9 @@ async function confirmParsedCredits() {
         <p v-if="overview" class="muted">
           学制 {{ overview.duration }} · {{ overview.degree }} · 总学分 {{ overview.totalCredits }}
         </p>
+        <p v-if="isReferenceCatalog" class="tag orange">
+          当前账号的培养方案暂未维护课程地图，下方课程地图展示的是 {{ referencePlan.grade }} {{ referencePlan.major }} 官方参考方案。
+        </p>
         <p class="muted">{{ overview?.objective || "系统依据培养方案与已获学分进行比对，展示模块缺口和风险提示。" }}</p>
         <div class="academic-summary">
           <div>
@@ -201,7 +219,7 @@ async function confirmParsedCredits() {
   </div>
 
   <section v-if="courseMap" class="card course-map-card">
-    <h3>课程地图</h3>
+    <h3>课程地图{{ isReferenceCatalog ? "（官方参考）" : "" }}</h3>
     <p class="muted">根据培养方案的开设学期展示，“应修尽修”课程建议按图中学期修读。</p>
     <div class="course-map">
       <div class="course-map-head">课程模块</div>
@@ -228,10 +246,10 @@ async function confirmParsedCredits() {
     </div>
   </section>
 
-  <section v-if="report?.graduationRequirements?.length" class="card">
-    <h3>毕业要求</h3>
+  <section v-if="graduationRequirements.length" class="card">
+    <h3>毕业要求{{ isReferenceCatalog ? "（官方参考）" : "" }}</h3>
     <div class="requirement-grid">
-      <span v-for="(item, index) in report.graduationRequirements" :key="item" class="tag gray">
+      <span v-for="(item, index) in graduationRequirements" :key="item" class="tag gray">
         {{ index + 1 }}. {{ item }}
       </span>
     </div>

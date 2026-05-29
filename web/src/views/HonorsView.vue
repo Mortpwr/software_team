@@ -1,17 +1,43 @@
 <script setup>
-import { inject, onMounted, reactive, ref } from "vue";
+import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 
 const api = inject("api");
 const toast = inject("toast");
+const session = inject("session");
 const filter = reactive({ major: "", category: "", year: "", grade: "", q: "" });
 const honors = ref([]);
+const loadError = ref("");
+const scholarshipItems = computed(() => honors.value.filter((item) => String(item.category || "").includes("奖学金")));
 
 onMounted(load);
+watch(() => session.value.token, (token) => {
+  if (token) load();
+  else {
+    honors.value = [];
+    loadError.value = "请先登录后查看奖励荣誉。";
+  }
+});
 
 async function load() {
-  const data = Object.fromEntries(Object.entries(filter).filter(([, value]) => value));
-  const res = await api.listHonors(data);
-  honors.value = res.list || [];
+  if (!session.value.token) {
+    honors.value = [];
+    loadError.value = "请先登录后查看奖励荣誉。";
+    return;
+  }
+  try {
+    const data = Object.fromEntries(Object.entries(filter).filter(([, value]) => value));
+    const res = await api.listHonors(data);
+    honors.value = res.list || [];
+    loadError.value = "";
+  } catch (error) {
+    honors.value = [];
+    loadError.value = error.message || "荣誉数据加载失败";
+  }
+}
+
+function useCategory(category) {
+  filter.category = category;
+  load();
 }
 
 function saveBlob(blob, name) {
@@ -51,6 +77,31 @@ async function downloadAttachment(file) {
     <button class="primary">筛选</button>
   </form>
 
+  <div v-if="loadError" class="card">
+    <strong>荣誉数据加载失败</strong>
+    <p class="muted">{{ loadError }}</p>
+  </div>
+
+  <section v-if="scholarshipItems.length" class="card scholarship-panel">
+    <div class="row between wrap">
+      <div>
+        <h3>2025 综合类奖学金评审</h3>
+        <p class="muted">已入库 {{ scholarshipItems.length }} 个奖项，包含综合类奖学金与捐赠类奖学金。</p>
+      </div>
+      <div class="row wrap">
+        <button type="button" @click="useCategory('综合类奖学金')">综合类</button>
+        <button type="button" @click="useCategory('捐赠类奖学金')">捐赠类</button>
+      </div>
+    </div>
+    <div class="scholarship-list">
+      <article v-for="item in scholarshipItems.slice(0, 6)" :key="item.id" class="scholarship-item">
+        <strong>{{ item.title }}</strong>
+        <span class="tag green">{{ item.category }}</span>
+        <p class="muted">{{ item.intro }}</p>
+      </article>
+    </div>
+  </section>
+
   <div class="grid cols-3">
     <article v-for="item in honors" :key="item.id" class="card">
       <h3>{{ item.title }}</h3>
@@ -67,4 +118,41 @@ async function downloadAttachment(file) {
       </div>
     </article>
   </div>
+
+  <div v-if="!loadError && !honors.length" class="card">
+    <p class="muted">暂无匹配荣誉条目，请调整筛选条件。</p>
+  </div>
 </template>
+
+<style scoped>
+.scholarship-panel {
+  margin-bottom: 16px;
+}
+.scholarship-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.scholarship-item {
+  min-height: 128px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+.scholarship-item strong {
+  display: block;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.scholarship-item p {
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+@media (max-width: 900px) {
+  .scholarship-list {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

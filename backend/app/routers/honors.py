@@ -79,7 +79,8 @@ def list_honors(
 
     if q:
 
-        stmt = stmt.where(or_(Honor.title.ilike(f"%{q}%"), Honor.winner.ilike(f"%{q}%")))
+        like = f"%{q}%"
+        stmt = stmt.where(or_(Honor.title.ilike(like), Honor.winner.ilike(like), Honor.category.ilike(like), Honor.intro.ilike(like)))
 
     rows = db.scalars(stmt.order_by(Honor.year.desc())).all()
 
@@ -291,5 +292,4 @@ def normalize_attachments(attachments: list[dict], visibility: str) -> list[dict
     allowed = visibility if visibility in {"public", "restricted"} else "public"
 
     return [{**item, "visibility": item.get("visibility") or allowed} for item in attachments or []]
-
 
