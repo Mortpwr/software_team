@@ -1,108 +1,206 @@
-# 组内本地开发更新说明
+# 组内本地开发环境说明
 
-本文档只说明组员在自己电脑上的开发与更新流程，不涉及云端部署。
+## 1. 仓库与目录
 
-## 1. 先明确协作方式
+仓库地址：
 
-- 平时开发以 GitHub 仓库为准
-- 每个人都在自己电脑上拉代码、修改、测试、提交
-- 不直接在别人的电脑或服务器代码目录里开发
-- 提交前先同步主分支最新代码，减少冲突
-
-## 2. 第一次拉项目
-
-先克隆仓库：
-
-```bash
-git clone git@github.com:zhuqizhe122/software_team.git
-cd software_team
+```text
+git@github.com:zhuqizhe122/software_team.git
 ```
 
-如果是 Windows，推荐使用 PowerShell。
+拉下来后的项目根目录就是：
 
-## 3. 第一次本地启动
+```text
+software_team/
+```
+
+开发时主要关注这几个目录：
+
+- `web/`：Vue 3 + Vite 前端
+- `backend/`：FastAPI 后端
+- `scripts/`：本地启动和辅助脚本
+- `docs/`：说明文档
+
+## 2. 本地环境要求
+
+建议本地具备：
+
+- Python 3
+- Node.js 18+
+- npm
+- PostgreSQL
+
+## 3. 本地配置文件
+
+后端配置会优先读取下面两个位置之一：
+
+```text
+项目根目录/.env
+backend/.env
+```
+
+可以直接参考：
+
+```text
+backend/.env.example
+```
+
+常用配置项包括：
+
+```text
+DATABASE_URL=postgresql+psycopg://student_service:student_service@127.0.0.1:5432/student_service
+CORS_ORIGINS=http://127.0.0.1:5177,http://localhost:5177,http://10.10.0.21
+AUTH_MODE=token
+AUTH_SECRET=自行设置
+UPLOAD_DIR=backend/storage/uploads
+```
+
+如果本地没有单独配 `.env`，后端也有默认值，但数据库和密钥最好自己明确配置。
+
+## 4. 第一次安装依赖
+
+### Windows
+
+在项目根目录执行：
+
+```powershell
+.\scripts\setup-local.ps1
+```
+
+这个脚本会做两件事：
+
+- 安装 `backend/requirements.txt`
+- 安装 `web/package.json` 依赖
+
+### Linux / macOS
+
+在项目根目录执行：
+
+```bash
+pip install -r backend/requirements.txt
+cd web && npm install && cd ..
+```
+
+## 5. 第一次初始化数据
+
+项目本地联调用到种子数据时，在项目根目录执行：
 
 ### Windows
 
 ```powershell
-.\scripts\setup-local.ps1
 $env:PYTHONPATH="backend"
 python -m app.seed
-.\scripts\dev-backend.ps1
-```
-
-新开一个终端：
-
-```powershell
-.\scripts\dev-web.ps1
 ```
 
 ### Linux / macOS
 
 ```bash
-pip install -r backend/requirements.txt
-cd web && npm install && cd ..
 PYTHONPATH=backend python -m app.seed
+```
+
+## 6. 本地启动命令
+
+### 启动后端
+
+Windows：
+
+```powershell
+.\scripts\dev-backend.ps1
+```
+
+Linux / macOS：
+
+```bash
 ./scripts/dev-backend.sh
 ```
 
-新开一个终端：
+后端实际启动方式是：
+
+```text
+PYTHONPATH=backend
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+### 启动前端
+
+Windows：
+
+```powershell
+.\scripts\dev-web.ps1
+```
+
+Linux / macOS：
 
 ```bash
 ./scripts/dev-web.sh
 ```
 
-启动后访问：
+前端实际启动端口是：
+
+```text
+127.0.0.1:5177
+```
+
+## 7. 本地访问地址
+
+启动完成后访问：
 
 ```text
 前端：http://127.0.0.1:5177/
-后端：http://127.0.0.1:8000/api
+后端 API：http://127.0.0.1:8000/api
+后端健康检查：http://127.0.0.1:8000/health
 接口文档：http://127.0.0.1:8000/docs
 ```
 
-## 4. 平时开始开发前
+## 8. 常用测试账号
 
-每次准备开始改代码前，先同步最新代码：
+默认密码规则：
+
+```text
+Stu@ + 学号后 6 位
+```
+
+常用账号：
+
+| 角色 | 学号 | 默认密码 |
+| --- | --- | --- |
+| 学生 | `2024201581` | `Stu@201581` |
+| 三级协同管理者 | `2023200444` | `Stu@200444` |
+| 管理老师 | `2022200999` | `Stu@200999` |
+| 学院领导 | `2024210888` | `Stu@210888` |
+
+## 9. 本地更新代码时常用命令
+
+拉取最新代码：
 
 ```bash
 git checkout main
 git pull origin main
 ```
 
-如果你们组内使用自己的功能分支，也可以先切到自己的分支，再同步主分支。
-
-## 5. 日常开发流程
-
-推荐按这个顺序：
-
-1. 先拉最新代码
-2. 启动本地前后端
-3. 修改代码
-4. 本地自测
-5. 查看变更
-6. 提交到 Git
-7. 推送到 GitHub
-
-常用命令：
+查看本地改动：
 
 ```bash
 git status
+```
+
+提交本地改动：
+
+```bash
 git add .
 git commit -m "你的提交说明"
 git push origin main
 ```
 
-如果你们组内约定使用分支开发，把最后一条改成推自己的分支即可。
+## 10. 提交前常用检查命令
 
-## 6. 提交前至少做的检查
-
-### 后端检查
+后端语法检查：
 
 ```bash
 python -m compileall backend/app
 ```
 
-### 前端检查
+前端构建检查：
 
 ```bash
 cd web
@@ -110,77 +208,21 @@ npm run build
 cd ..
 ```
 
-### 接口冒烟检查
+接口冒烟检查：
 
 ```bash
 ./scripts/smoke-backend.sh
 ```
 
-如果是 Windows，可以优先保证：
+## 11. 本地文件与忽略项
 
-- 本地前端能正常打开
-- 登录正常
-- 你改动的页面和接口没有报错
+仓库已经忽略了这些常见本地内容：
 
-## 7. 拉取别人更新后的处理方式
+- `.env`
+- 虚拟环境目录
+- `node_modules/`
+- 构建产物
+- `backend/storage/uploads/`
+- 本地课程资料目录
 
-如果别人已经 push 了新代码，你本地继续开发前先执行：
-
-```bash
-git checkout main
-git pull origin main
-```
-
-如果你本地已经改过文件但还没提交：
-
-- 先 `git status` 看看改了什么
-- 自己确认这些改动是否要保留
-- 再决定是先提交，还是先暂存后同步
-
-## 8. 发生冲突时怎么理解
-
-Git 冲突通常表示：
-
-- 你改了某段代码
-- 别人也改了同一段代码
-- Git 不知道该保留谁
-
-这时候不要乱删，先看冲突文件，确定最终保留哪部分逻辑，再重新提交。
-
-## 9. 不建议的做法
-
-- 不要直接把代码压缩包互相传来传去覆盖
-- 不要在服务器上直接当开发环境改代码
-- 不要把本地生成的数据、缓存、上传文件、过程材料随便提交到 GitHub
-- 不要提交和本次功能无关的大量格式化改动
-- 不要在没拉最新代码时直接开始改
-
-## 10. 当前仓库里已经忽略的本地内容
-
-以下内容默认不应提交：
-
-- Python 缓存、虚拟环境
-- `node_modules/`、构建产物
-- 本地 `.env`
-- 本地上传文件和演示数据
-- 一些课程材料、压缩包、说明书导出文件
-- 本地资料目录，如 `党团平台官方文件/`、`党团平台文件 2/`
-
-## 11. 一版最简流程
-
-如果只记最核心的流程，记下面这些就够了：
-
-```bash
-git pull origin main
-```
-
-改代码并本地测试后：
-
-```bash
-git status
-git add .
-git commit -m "update: xxx"
-git push origin main
-```
-
-这就是组员在自己电脑上最基础的开发更新流程。
+如果只是本地调试或个人资料文件，不需要额外提交到 GitHub。
