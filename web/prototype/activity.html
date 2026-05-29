@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>党团学 App - 活动报名</title>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ["Inter", "PingFang SC", "system-ui", "sans-serif"] } } } };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  <link rel="stylesheet" href="./assets/shared.css" />
+  <script src="./assets/shared.js"></script>
+</head>
+<body class="prototype-phone">
+  <div id="app" class="app-screen page-enter">
+    <header class="top-glass">
+      <div class="statusbar">
+        <span>{{ now }}</span>
+        <span class="flex items-center gap-1">
+          <span class="iconify text-[15px]" data-icon="solar:wi-fi-router-bold"></span>
+          <span class="iconify text-[17px]" data-icon="solar:battery-charge-bold"></span>
+        </span>
+      </div>
+      <div class="nav-title">
+        <div>
+          <p class="text-xs font-bold text-orange-500">Volunteer Hub</p>
+          <h1 class="text-2xl font-black tracking-tight">活动报名</h1>
+        </div>
+        <button class="ripple pressable rounded-2xl bg-slate-900 px-4 py-3 text-sm font-black text-white shadow-xl">筛选</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="card relative overflow-hidden p-5">
+        <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-orange-300/30 blur-2xl"></div>
+        <div class="absolute -bottom-10 left-8 h-36 w-36 rounded-full bg-cyan-300/30 blur-3xl"></div>
+        <div class="relative flex items-center justify-between">
+          <div>
+            <p class="text-xs font-black text-slate-400">本月志愿服务</p>
+            <h2 class="mt-1 text-4xl font-black">48h</h2>
+            <p class="mt-2 text-sm font-semibold text-slate-500">再完成 12 小时可点亮月度徽章</p>
+          </div>
+          <div class="metric-ring grid h-24 w-24 place-items-center rounded-full" style="--value: 72%">
+            <div class="text-center">
+              <p class="text-2xl font-black text-blue-600">72%</p>
+              <p class="text-[10px] font-bold text-slate-400">目标</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-5 flex gap-2 overflow-x-auto pb-1">
+        <button v-for="tag in tags" :key="tag" @click="activeTag = tag"
+          class="ripple pressable shrink-0 rounded-full px-4 py-2 text-sm font-black transition-all duration-300"
+          :class="activeTag === tag ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25' : 'bg-white/80 text-slate-500'">
+          {{ tag }}
+        </button>
+      </section>
+
+      <section v-if="loading" class="mt-4 space-y-4">
+        <div v-for="n in 3" :key="n" class="card overflow-hidden">
+          <div class="skeleton h-40 w-full rounded-t-[1.75rem]"></div>
+          <div class="p-4">
+            <div class="skeleton h-5 w-2/3 rounded-full"></div>
+            <div class="skeleton mt-3 h-4 w-full rounded-full"></div>
+            <div class="skeleton mt-5 h-11 w-full rounded-2xl"></div>
+          </div>
+        </div>
+      </section>
+
+      <section v-else class="mt-4 space-y-5">
+        <article v-for="item in filtered" :key="item.title" class="reveal card overflow-hidden">
+          <div class="relative h-40 overflow-hidden">
+            <img :src="item.image" class="h-full w-full object-cover transition-transform duration-700 hover:scale-105" alt="" />
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent"></div>
+            <div class="absolute bottom-3 left-3 flex gap-2">
+              <span v-for="tag in item.tags" :key="tag" class="rounded-full bg-white/22 px-2.5 py-1 text-[11px] font-black text-white backdrop-blur-xl">{{ tag }}</span>
+            </div>
+          </div>
+          <div class="p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3 class="text-lg font-black leading-tight">{{ item.title }}</h3>
+                <p class="mt-2 flex items-center gap-1 text-xs font-bold text-slate-500">
+                  <span class="iconify" data-icon="solar:map-point-bold-duotone"></span>{{ item.campus }}
+                </p>
+                <p class="mt-1 flex items-center gap-1 text-xs font-bold text-slate-500">
+                  <span class="iconify" data-icon="solar:clock-circle-bold-duotone"></span>{{ item.date }}
+                </p>
+              </div>
+              <div class="rounded-2xl bg-orange-50 px-3 py-2 text-center">
+                <p class="text-lg font-black text-orange-500">+{{ item.points }}</p>
+                <p class="text-[10px] font-bold text-orange-400">积分</p>
+              </div>
+            </div>
+            <div class="mt-4">
+              <div class="mb-2 flex justify-between text-xs font-bold text-slate-400">
+                <span>已报名 {{ item.signed }}/{{ item.quota }}</span>
+                <span>{{ Math.round(item.signed / item.quota * 100) }}%</span>
+              </div>
+              <div class="h-2 rounded-full bg-slate-100">
+                <div class="h-2 rounded-full bg-gradient-to-r from-blue-600 to-cyan-400" :style="{ width: item.signed / item.quota * 100 + '%' }"></div>
+              </div>
+            </div>
+            <button @click="sign(item)" class="ripple pressable mt-4 w-full rounded-2xl bg-slate-900 py-3 text-sm font-black text-white shadow-xl">
+              {{ signed[item.title] ? "已报名，查看签到码" : "立即报名" }}
+            </button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <nav class="tabbar glass">
+      <a v-for="tab in tabItems" :key="tab.id" :href="tab.href" :class="{ active: tab.id === active }">
+        <span class="iconify" :data-icon="tab.icon"></span>
+        <span>{{ tab.label }}</span>
+      </a>
+    </nav>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+    createApp({
+      setup() {
+        const shell = CampusProto.createAppShell("activity");
+        const tags = ["全部", "志愿", "实践", "团建", "可加分"];
+        const activeTag = ref("全部");
+        const signed = ref({});
+        const loading = ref(true);
+        const filtered = computed(() => activeTag.value === "全部"
+          ? CampusProto.activities
+          : CampusProto.activities.filter((item) => item.tags.includes(activeTag.value)));
+        function sign(item) {
+          signed.value[item.title] = true;
+        }
+        onMounted(() => {
+          setTimeout(() => {
+            loading.value = false;
+            requestAnimationFrame(() => shell.setupInteractions(document));
+          }, 480);
+        });
+        return { ...shell, tags, activeTag, filtered, signed, sign, loading };
+      },
+    }).mount("#app");
+  </script>
+</body>
+</html>
+

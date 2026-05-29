@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>党团学 App - 学习打卡</title>
+  <script>
+    tailwind.config = { theme: { extend: { fontFamily: { sans: ["Inter", "PingFang SC", "system-ui", "sans-serif"] } } } };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  <link rel="stylesheet" href="./assets/shared.css" />
+  <script src="./assets/shared.js"></script>
+</head>
+<body class="prototype-phone">
+  <div id="app" class="app-screen page-enter">
+    <header class="top-glass">
+      <div class="statusbar">
+        <span>{{ now }}</span>
+        <span class="flex items-center gap-1">
+          <span class="iconify text-[15px]" data-icon="solar:wi-fi-router-bold"></span>
+          <span class="iconify text-[17px]" data-icon="solar:battery-charge-bold"></span>
+        </span>
+      </div>
+      <div class="nav-title">
+        <div>
+          <p class="text-xs font-bold text-emerald-500">Study Streak</p>
+          <h1 class="text-2xl font-black tracking-tight">学习打卡</h1>
+        </div>
+        <button class="ripple pressable grid h-11 w-11 place-items-center rounded-2xl bg-white/80 shadow-lg">
+          <span class="iconify text-xl text-slate-700" data-icon="solar:chart-2-bold-duotone"></span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="relative overflow-hidden rounded-[2rem] bg-slate-950 p-5 text-white shadow-2xl">
+        <img class="absolute inset-0 h-full w-full object-cover opacity-40"
+          src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=85" alt="" />
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-700/70 via-slate-950/50 to-orange-500/55"></div>
+        <div class="relative z-10">
+          <div class="flex items-center justify-between">
+            <span class="rounded-full bg-white/18 px-3 py-1 text-xs font-black backdrop-blur-xl">连续打卡 12 天</span>
+            <span class="iconify floating text-5xl text-yellow-300" data-icon="solar:medal-ribbon-star-bold-duotone"></span>
+          </div>
+          <h2 class="mt-10 text-3xl font-black leading-tight">青年大学习第十二期</h2>
+          <p class="mt-2 text-sm leading-6 text-white/82">距离截止还有 9 小时。完成学习后可获得 80 积分并同步到个人成长档案。</p>
+          <button @click="checkIn" class="ripple pressable mt-5 rounded-2xl bg-white px-5 py-3 text-sm font-black text-blue-600 shadow-xl">
+            {{ checked ? "今日已打卡" : "开始学习并打卡" }}
+          </button>
+        </div>
+      </section>
+
+      <section class="mt-5 card p-4">
+        <div class="mb-4 flex items-center justify-between">
+          <h2 class="text-lg font-black">本周学习节奏</h2>
+          <span class="text-xs font-black text-blue-600">5/7 完成</span>
+        </div>
+        <div class="grid grid-cols-7 gap-2">
+          <div v-for="(day, index) in days" :key="day"
+            class="reveal grid h-11 place-items-center rounded-2xl text-xs font-black"
+            :class="index < 5 ? 'bg-gradient-to-br from-blue-600 to-cyan-400 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-100 text-slate-400'">
+            {{ day }}
+          </div>
+        </div>
+      </section>
+
+      <section class="mt-7 flex items-end justify-between">
+        <div>
+          <p class="text-xs font-bold text-emerald-500">Learning Tasks</p>
+          <h2 class="text-xl font-black">课程任务</h2>
+        </div>
+        <button class="text-sm font-black text-blue-600">学习记录</button>
+      </section>
+
+      <section v-if="loading" class="mt-4 space-y-4">
+        <div v-for="n in 3" :key="n" class="card flex gap-4 p-3">
+          <div class="skeleton h-24 w-24 rounded-[1.5rem]"></div>
+          <div class="flex-1 py-2">
+            <div class="skeleton h-5 w-2/3 rounded-full"></div>
+            <div class="skeleton mt-3 h-4 w-full rounded-full"></div>
+            <div class="skeleton mt-5 h-2 w-full rounded-full"></div>
+          </div>
+        </div>
+      </section>
+
+      <section v-else class="mt-4 space-y-4">
+        <article v-for="lesson in lessons" :key="lesson.title" class="reveal card flex gap-4 p-3">
+          <img :src="lesson.image" class="h-24 w-24 rounded-[1.5rem] object-cover" alt="" />
+          <div class="min-w-0 flex-1">
+            <h3 class="line-clamp-1 text-base font-black">{{ lesson.title }}</h3>
+            <p class="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{{ lesson.subtitle }}</p>
+            <div class="mt-3">
+              <div class="mb-1 flex justify-between text-[11px] font-bold text-slate-400">
+                <span>{{ lesson.due }}</span>
+                <span>{{ lesson.progress }}%</span>
+              </div>
+              <div class="h-2 rounded-full bg-slate-100">
+                <div class="h-2 rounded-full bg-gradient-to-r from-emerald-400 to-blue-500" :style="{ width: lesson.progress + '%' }"></div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <nav class="tabbar glass">
+      <a v-for="tab in tabItems" :key="tab.id" :href="tab.href" :class="{ active: tab.id === active }">
+        <span class="iconify" :data-icon="tab.icon"></span>
+        <span>{{ tab.label }}</span>
+      </a>
+    </nav>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+    createApp({
+      setup() {
+        const shell = CampusProto.createAppShell("study");
+        const loading = ref(true);
+        const checked = ref(false);
+        const days = ["一", "二", "三", "四", "五", "六", "日"];
+        function checkIn() {
+          checked.value = true;
+        }
+        onMounted(() => {
+          setTimeout(() => {
+            loading.value = false;
+            requestAnimationFrame(() => shell.setupInteractions(document));
+          }, 520);
+        });
+        return { ...shell, days, checked, checkIn, loading, lessons: CampusProto.lessons };
+      },
+    }).mount("#app");
+  </script>
+</body>
+</html>
+

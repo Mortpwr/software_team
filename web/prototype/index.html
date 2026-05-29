@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>高校党团学 App 高保真展示板</title>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ["Inter", "PingFang SC", "system-ui", "sans-serif"] },
+        },
+      },
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+  <link rel="stylesheet" href="./assets/shared.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.32), transparent 28%),
+        radial-gradient(circle at 88% 18%, rgba(249, 115, 22, 0.24), transparent 26%),
+        linear-gradient(135deg, #020617 0%, #111827 48%, #1f2937 100%);
+      color: #f8fafc;
+    }
+  </style>
+</head>
+<body>
+  <main class="mx-auto max-w-[1920px] px-8 py-10">
+    <section class="mb-10 grid gap-6 xl:grid-cols-[1.05fr_.95fr]">
+      <div class="rounded-[2rem] border border-white/10 bg-white/[0.06] p-8 shadow-2xl backdrop-blur-2xl">
+        <p class="text-sm font-black uppercase tracking-[0.32em] text-cyan-300">UX Strategy</p>
+        <h1 class="mt-4 max-w-4xl text-4xl font-black leading-tight md:text-6xl">
+          高校内部党团学 App 高保真可交互原型
+        </h1>
+        <p class="mt-5 max-w-3xl text-base leading-8 text-slate-300">
+          围绕“查看资讯 -> 报名志愿活动 -> 学习打卡 -> 个人积分沉淀”的成长闭环，将通知触达、活动转化、学习督促和个人画像沉淀整合为一个轻量、年轻、可扩展的校园移动体验。
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <article class="rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-xl">
+          <span class="iconify text-3xl text-blue-300" data-icon="solar:user-speak-rounded-bold-duotone"></span>
+          <h2 class="mt-3 text-lg font-black">学生痛点</h2>
+          <p class="mt-2 text-sm leading-6 text-slate-300">资讯分散、报名入口难找、学习任务容易遗忘、个人荣誉和积分沉淀不可见。</p>
+        </article>
+        <article class="rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-xl">
+          <span class="iconify text-3xl text-orange-300" data-icon="solar:shield-user-bold-duotone"></span>
+          <h2 class="mt-3 text-lg font-black">管理员诉求</h2>
+          <p class="mt-2 text-sm leading-6 text-slate-300">精准触达、活动容量管理、学习完成率统计、可追溯的学生成长数据。</p>
+        </article>
+        <article class="rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-xl sm:col-span-2">
+          <h2 class="text-lg font-black">Tab Bar 信息架构</h2>
+          <div class="mt-4 grid grid-cols-4 gap-3 text-center text-xs font-bold text-slate-300">
+            <div class="rounded-2xl bg-white/[0.06] p-3">资讯<br><span class="text-blue-300">政策通知</span></div>
+            <div class="rounded-2xl bg-white/[0.06] p-3">活动<br><span class="text-orange-300">报名签到</span></div>
+            <div class="rounded-2xl bg-white/[0.06] p-3">学习<br><span class="text-emerald-300">任务打卡</span></div>
+            <div class="rounded-2xl bg-white/[0.06] p-3">我的<br><span class="text-rose-300">积分档案</span></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="mb-8 rounded-[2rem] border border-white/10 bg-white/[0.055] p-6 backdrop-blur-xl">
+      <div class="grid gap-4 md:grid-cols-4">
+        <div>
+          <p class="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">Color</p>
+          <p class="mt-2 text-sm leading-6 text-slate-300">科技蓝、活力橙、青绿色和柔和玫瑰色，兼容深色模式扩展。</p>
+        </div>
+        <div>
+          <p class="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">Layout</p>
+          <p class="mt-2 text-sm leading-6 text-slate-300">8pt 网格、大圆角卡片、无边框留白与弥散阴影。</p>
+        </div>
+        <div>
+          <p class="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">Glass</p>
+          <p class="mt-2 text-sm leading-6 text-slate-300">顶部导航和底部 Tab Bar 使用毛玻璃，模拟 iOS 原生层次。</p>
+        </div>
+        <div>
+          <p class="text-xs font-black uppercase tracking-[0.24em] text-cyan-300">Motion</p>
+          <p class="mt-2 text-sm leading-6 text-slate-300">Fade-up 入场、ripple、弹性 Tab、骨架屏和阶梯滚动动画。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid justify-items-center gap-10 2xl:grid-cols-4 xl:grid-cols-2">
+      <article class="space-y-4">
+        <h2 class="text-center text-xl font-black">首页资讯</h2>
+        <div class="phone-frame">
+          <div class="dynamic-island"></div>
+          <div class="phone-screen">
+            <iframe src="./home.html" title="首页资讯"></iframe>
+          </div>
+        </div>
+      </article>
+
+      <article class="space-y-4">
+        <h2 class="text-center text-xl font-black">活动报名</h2>
+        <div class="phone-frame">
+          <div class="dynamic-island"></div>
+          <div class="phone-screen">
+            <iframe src="./activity.html" title="活动报名"></iframe>
+          </div>
+        </div>
+      </article>
+
+      <article class="space-y-4">
+        <h2 class="text-center text-xl font-black">学习打卡</h2>
+        <div class="phone-frame">
+          <div class="dynamic-island"></div>
+          <div class="phone-screen">
+            <iframe src="./study.html" title="学习打卡"></iframe>
+          </div>
+        </div>
+      </article>
+
+      <article class="space-y-4">
+        <h2 class="text-center text-xl font-black">个人中心</h2>
+        <div class="phone-frame">
+          <div class="dynamic-island"></div>
+          <div class="phone-screen">
+            <iframe src="./profile.html" title="个人中心"></iframe>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
+

@@ -49,6 +49,7 @@ const currentView = computed(() => viewMap[activeRoute.value] || HomeView);
 const currentTitle = computed(() => routes.find((item) => item.id === activeRoute.value)?.label || "首页");
 const mobileRoutes = computed(() => visibleNavRoutes.value.filter((item) => mobileRouteIds.includes(item.id)));
 const roleLabel = computed(() => ROLE_LABEL[session.value.role] || "未登录");
+const apiBaseUrl = import.meta.env.VITE_API_BASE || import.meta.env.VITE_API_BASE_URL || "/api";
 
 window.addEventListener("hashchange", () => {
   route.value = readRoute();
@@ -66,7 +67,7 @@ window.addEventListener("authrequired", () => {
 });
 
 onMounted(() => {
-  configureApi({ mode: "remote", baseUrl: import.meta.env.VITE_API_BASE || "/api" });
+  configureApi({ mode: "remote", baseUrl: apiBaseUrl });
   apiConfig.value = getApiConfig();
 });
 
@@ -151,7 +152,9 @@ function reloadShell() {
         </div>
       </div>
 
-      <component :is="currentView" />
+      <div class="view-stage" :key="activeRoute">
+        <component :is="currentView" />
+      </div>
     </main>
   </div>
 
