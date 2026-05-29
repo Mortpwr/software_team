@@ -2,6 +2,10 @@ __pycache__/
 *.py[cod]
 .venv/
 .env
+deploy/server-credentials.env
+deploy/offline-debs/*.deb
+deploy/wheels/
+backend/.venv/
 node_modules/
 dist/
 build/

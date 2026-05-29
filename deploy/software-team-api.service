@@ -1,0 +1,18 @@
+[Unit]
+Description=学院学生综合服务与党团管理平台 API
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=user
+Group=user
+WorkingDirectory=/home/user/software_team
+Environment=PYTHONPATH=/home/user/software_team/backend
+EnvironmentFile=/home/user/software_team/backend/.env
+ExecStart=/home/user/software_team/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
