@@ -1,142 +1,173 @@
 #!/usr/bin/env bash
 # 无 root 环境：清理残留 + 全新 clone + 部署（user 账号）
-# 用法：bash scripts/server/fresh-install-user.sh
-# 会保留：/opt/student_service/.env 、uploads/ 、venv/（若存在）
-# 会删除：旧代码目录、旧备份、pip/npm 缓存、重复 clone
+# 用法：bash fresh-install-user.sh
+#       BASE=$HOME/student_service bash fresh-install-user.sh   # /opt 无权限时
 
-set -euo pipefail
+set -u pipefail
 
-BASE="${BASE:-/opt/student_service}"
-APP_ROOT="${APP_ROOT:-$BASE/software_team}"
 REPO_URL="${REPO_URL:-https://github.com/zhuqizhe122/software_team.git}"
-KEEP_BACKUPS="${KEEP_BACKUPS:-1}"   # 保留最近 N 个备份目录，0=全删
+KEEP_BACKUPS="${KEEP_BACKUPS:-1}"
 STAMP=$(date +%Y%m%d_%H%M%S)
-SAFE="/tmp/student_service_safety_$STAMP"
+SAFE="$HOME/.student_service_safety_$STAMP"
+LEGACY_BASE="/opt/student_service"
 
 if [[ "$(id -u)" -eq 0 ]]; then
-  echo "ERROR: 不要用 root 运行。请用 user 账号执行。"
+  echo "ERROR: 不要用 root 运行。"
   exit 1
 fi
 
+pick_base() {
+  if [[ -n "${BASE:-}" ]]; then
+    mkdir -p "$BASE" 2>/dev/null || true
+    if [[ -d "$BASE" ]] && [[ -w "$BASE" ]]; then
+      export APP_ROOT="${APP_ROOT:-$BASE/software_team}"
+      return 0
+    fi
+    echo "ERROR: 指定的 BASE=$BASE 不可写"
+    exit 1
+  fi
+  if [[ -d "$LEGACY_BASE" ]] && [[ -w "$LEGACY_BASE" ]]; then
+    BASE="$LEGACY_BASE"
+  else
+    BASE="$HOME/student_service"
+    echo "==> /opt/student_service 不可写，改用: $BASE"
+  fi
+  export BASE APP_ROOT="$BASE/software_team"
+  mkdir -p "$BASE"
+}
+
+safe_rm() {
+  local target="$1"
+  [[ -e "$target" ]] || return 0
+  if rm -rf "$target" 2>/dev/null; then
+    echo "    已删除: $target"
+  else
+    echo "    跳过(无权限): $target"
+  fi
+}
+
+try_copy_env_uploads() {
+  local src_base="$1"
+  [[ -f "$src_base/.env" ]] && [[ ! -f "$SAFE/.env" ]] && cp -a "$src_base/.env" "$SAFE/.env" 2>/dev/null && echo "    已从 $src_base 备份 .env"
+  [[ -d "$src_base/uploads" ]] && [[ ! -d "$SAFE/uploads" ]] && cp -a "$src_base/uploads" "$SAFE/uploads" 2>/dev/null && echo "    已从 $src_base 备份 uploads"
+}
+
+sync_dist_to_legacy_nginx() {
+  local legacy_dist="$LEGACY_BASE/software_team/web/dist"
+  local new_dist="$APP_ROOT/web/dist"
+  [[ -d "$new_dist" ]] || return 0
+  [[ "$BASE" == "$LEGACY_BASE" ]] && return 0
+  if [[ -d "$(dirname "$legacy_dist")" ]] && [[ -w "$(dirname "$legacy_dist")" ]]; then
+    echo "==> 同步前端到 Nginx 常用路径: $legacy_dist"
+    mkdir -p "$(dirname "$legacy_dist")"
+    safe_rm "$legacy_dist"
+    cp -a "$new_dist" "$legacy_dist"
+    echo "    已同步 web/dist"
+  else
+    echo "WARN: 无法写入 $legacy_dist"
+    echo "      请让管理员把 Nginx root 改为: $new_dist"
+    echo "      或执行: sudo chown -R $(whoami):$(id -gn) $LEGACY_BASE"
+  fi
+}
+
+pick_base
+
 echo "=========================================="
-echo "  学生服务平台 — 环境清理 + 全新部署"
-echo "  用户: $(whoami)  基目录: $BASE"
+echo "  环境清理 + 全新部署"
+echo "  用户: $(whoami)  BASE: $BASE"
 echo "=========================================="
 
 mkdir -p "$SAFE"
 
-# ---- 0. 停后端 ----
 echo ""
-echo "==> [0/7] 停止旧后端进程"
+echo "==> [0] 停止旧后端"
 systemctl --user stop student-service 2>/dev/null || true
-if [[ -f "$BASE/student-service.pid" ]]; then
-  pid=$(cat "$BASE/student-service.pid" 2>/dev/null || true)
-  [[ -n "$pid" ]] && kill "$pid" 2>/dev/null || true
-  rm -f "$BASE/student-service.pid"
-fi
+for pidfile in "$BASE/student-service.pid" "$LEGACY_BASE/student-service.pid"; do
+  if [[ -f "$pidfile" ]]; then
+    pid=$(cat "$pidfile" 2>/dev/null || true)
+    [[ -n "$pid" ]] && kill "$pid" 2>/dev/null || true
+    rm -f "$pidfile" 2>/dev/null || true
+  fi
+done
 pkill -u "$(whoami)" -f "uvicorn app.main:app" 2>/dev/null || true
 sleep 1
 
-# ---- 1. 备份必留文件 ----
 echo ""
-echo "==> [1/7] 备份 .env 与 uploads"
-[[ -f "$BASE/.env" ]] && cp -a "$BASE/.env" "$SAFE/.env" && echo "    已备份 .env"
-[[ -d "$BASE/uploads" ]] && cp -a "$BASE/uploads" "$SAFE/uploads" && echo "    已备份 uploads"
-# 旧目录里若也有 .env
-for d in "$BASE"/software_team* "$HOME"/software_team; do
-  [[ -f "$d/../.env" ]] && [[ ! -f "$SAFE/.env" ]] && cp -a "$d/../.env" "$SAFE/.env" 2>/dev/null || true
+echo "==> [1] 备份 .env / uploads（可读即可，不要求可写 /opt）"
+try_copy_env_uploads "$BASE"
+try_copy_env_uploads "$LEGACY_BASE"
+try_copy_env_uploads "$HOME"
+
+echo ""
+echo "==> [2] 清理当前用户可写的旧目录"
+for p in \
+  "$BASE/software_team" \
+  "$BASE/software_team.old" \
+  "$BASE/software_team.bak" \
+  "$HOME/software_team" \
+  "$HOME/software_team.old" \
+  "$HOME/software_team_tmp" \
+  "$HOME/fresh-install-user.sh"; do
+  safe_rm "$p"
 done
+for p in "$BASE"/software_team.old.* "$BASE"/software_team.bak.*; do
+  safe_rm "$p"
+done
+safe_rm "$BASE/server"
 
-# ---- 2. 列出并删除重复/旧代码目录 ----
 echo ""
-echo "==> [2/7] 清理旧项目目录"
-TO_REMOVE=(
-  "$BASE/software_team.old"
-  "$BASE/software_team.old."*
-  "$BASE/software_team.bak"
-  "$BASE/software_team.bak."*
-  "$BASE/software_team_broken"
-  "$HOME/software_team"
-  "$HOME/software_team.old"
-)
-# 当前 software_team 也删掉以便全新 clone
-TO_REMOVE+=("$APP_ROOT")
-
-for p in "${TO_REMOVE[@]}"; do
-  for match in $p; do
-    [[ -e "$match" ]] || continue
-    echo "    删除: $match"
-    rm -rf "$match"
+echo "==> [3] 清理缓存（仅 BASE 下）"
+if [[ -d "$BASE/backups" ]] && [[ -w "$BASE/backups" ]]; then
+  mapfile -t dirs < <(ls -1dt "$BASE/backups"/*/ 2>/dev/null || true)
+  n=${#dirs[@]}
+  for ((i=KEEP_BACKUPS; i<n; i++)); do
+    safe_rm "${dirs[$i]}"
   done
-done
-
-# 仓库内旧 Node 本地网关数据（若曾拷贝到 BASE 下）
-[[ -d "$BASE/server" ]] && echo "    删除旧 Node 目录: $BASE/server" && rm -rf "$BASE/server"
-
-# ---- 3. 清理备份与缓存 ----
-echo ""
-echo "==> [3/7] 清理备份与缓存"
-if [[ -d "$BASE/backups" ]]; then
-  if [[ "$KEEP_BACKUPS" -eq 0 ]]; then
-    rm -rf "$BASE/backups"
-    mkdir -p "$BASE/backups"
-    echo "    已清空 backups/"
-  else
-    mapfile -t dirs < <(ls -1dt "$BASE/backups"/*/ 2>/dev/null || true)
-    n=${#dirs[@]}
-    for ((i=KEEP_BACKUPS; i<n; i++)); do
-      echo "    删除旧备份: ${dirs[$i]}"
-      rm -rf "${dirs[$i]}"
-    done
-  fi
 fi
-rm -rf "$BASE/.cache/pip" "$BASE/.npm-cache" 2>/dev/null || true
+safe_rm "$BASE/.cache"
+safe_rm "$BASE/.npm-cache"
 rm -f "$BASE/.requirements.txt.hash" "$BASE/.package-lock.json.hash" 2>/dev/null || true
-echo "    已清 pip/npm 缓存与依赖哈希标记"
 
-# ---- 4. 清理日志与临时 ----
 echo ""
-echo "==> [4/7] 清理日志"
-mkdir -p "$BASE/logs"
-: > "$BASE/logs/student-service.log" 2>/dev/null || true
-journalctl --user --vacuum-time=3d 2>/dev/null || true
-
-# ---- 5. 全新 clone ----
-echo ""
-echo "==> [5/7] 克隆最新代码"
+echo "==> [4] 克隆最新代码 -> $APP_ROOT"
 mkdir -p "$BASE"
+if [[ -d "$APP_ROOT/.git" ]]; then
+  echo "ERROR: $APP_ROOT 仍存在且无法删除，请改用: BASE=$HOME/student_service bash $0"
+  exit 1
+fi
 git clone "$REPO_URL" "$APP_ROOT"
 cd "$APP_ROOT"
-echo "    版本: $(git log -1 --oneline)"
+echo "    $(git log -1 --oneline)"
 
-# ---- 6. 恢复 .env / uploads ----
 echo ""
-echo "==> [6/7] 恢复配置与上传文件"
+echo "==> [5] 恢复 .env / uploads"
 if [[ -f "$SAFE/.env" ]]; then
   cp -a "$SAFE/.env" "$BASE/.env"
   echo "    已恢复 $BASE/.env"
 else
   cp backend/.env.example "$BASE/.env"
-  echo "    WARN: 未找到旧 .env，已从模板生成，请编辑 $BASE/.env"
+  echo "    已从模板生成 $BASE/.env ，请检查 DATABASE_URL"
 fi
 if [[ -d "$SAFE/uploads" ]]; then
   mkdir -p "$BASE/uploads"
   cp -a "$SAFE/uploads/." "$BASE/uploads/"
-  echo "    已恢复 uploads/"
 fi
 rm -rf "$SAFE"
 
-# ---- 7. 初始化 + 部署 ----
 echo ""
-echo "==> [7/7] 安装依赖并部署"
+echo "==> [6] 安装并部署"
+export BASE APP_ROOT
 bash scripts/server/once-setup-china.sh
 bash scripts/server/update-app.sh
+
+sync_dist_to_legacy_nginx
 
 systemctl --user start student-service 2>/dev/null || bash scripts/server/restart-backend.sh
 
 echo ""
 echo "=========================================="
-echo "  完成。请浏览器访问: http://10.10.0.21/"
-echo "  健康检查: curl -s http://127.0.0.1:8000/health"
-echo "  日志: journalctl --user -u student-service -n 30 --no-pager"
+echo "  完成"
+echo "  BASE=$BASE"
+echo "  健康: curl -s http://127.0.0.1:8000/health"
+echo "  访问: http://10.10.0.21/"
 echo "=========================================="

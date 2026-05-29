@@ -15,11 +15,13 @@ APP_ROOT="${APP_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 STAMP=$(date +%Y%m%d_%H%M%S)
 DO_BACKUP=1
 BUILD_ONLY=0
+SKIP_GIT=0
 
 for arg in "$@"; do
   case "$arg" in
     --no-backup) DO_BACKUP=0 ;;
     --build-only) BUILD_ONLY=1 ;;
+    --skip-git) SKIP_GIT=1 ;;
   esac
 done
 
@@ -44,17 +46,25 @@ LOCK_HASH_FILE="$BASE/.package-lock.json.hash"
 
 if [[ "$BUILD_ONLY" -eq 0 ]]; then
   if [[ "$DO_BACKUP" -eq 1 ]]; then
-    echo "==> 备份到 $BACKUP_ROOT/$STAMP"
-    mkdir -p "$BACKUP_ROOT/$STAMP"
-    git rev-parse HEAD > "$BACKUP_ROOT/$STAMP/git_commit.txt"
-    [[ -f "$ENV_FILE" ]] && cp "$ENV_FILE" "$BACKUP_ROOT/$STAMP/.env"
-    [[ -d "$UPLOAD_DIR" ]] && cp -a "$UPLOAD_DIR" "$BACKUP_ROOT/$STAMP/uploads" 2>/dev/null || true
-    [[ -d web/dist ]] && cp -a web/dist "$BACKUP_ROOT/$STAMP/web_dist" 2>/dev/null || true
-    pg_dump_backup "$BACKUP_ROOT/$STAMP/student_service.sql"
-    echo "备份 commit: $(cat "$BACKUP_ROOT/$STAMP/git_commit.txt")"
+    if ! ensure_writable_dir "$BACKUP_ROOT"; then
+      echo "WARN: $BACKUP_ROOT 不可写，跳过备份（可用 sudo chown -R user:user /opt/student_service 修复）"
+    else
+      echo "==> 备份到 $BACKUP_ROOT/$STAMP"
+      mkdir -p "$BACKUP_ROOT/$STAMP"
+      git rev-parse HEAD > "$BACKUP_ROOT/$STAMP/git_commit.txt"
+      [[ -f "$ENV_FILE" ]] && cp "$ENV_FILE" "$BACKUP_ROOT/$STAMP/.env"
+      [[ -d "$UPLOAD_DIR" ]] && cp -a "$UPLOAD_DIR" "$BACKUP_ROOT/$STAMP/uploads" 2>/dev/null || true
+      [[ -d web/dist ]] && cp -a web/dist "$BACKUP_ROOT/$STAMP/web_dist" 2>/dev/null || true
+      pg_dump_backup "$BACKUP_ROOT/$STAMP/student_service.sql"
+      echo "备份 commit: $(cat "$BACKUP_ROOT/$STAMP/git_commit.txt")"
+    fi
   fi
 
-  git_sync_main
+  if [[ "$SKIP_GIT" -eq 0 ]]; then
+    git_sync_main || echo "WARN: git 同步失败，继续使用当前目录代码（scp 上传时可加 --skip-git 跳过）"
+  else
+    echo "==> 跳过 git 同步（使用当前目录已有代码）"
+  fi
 
   current_req=$(hash_file backend/requirements.txt)
   if [[ ! -f "$REQ_HASH_FILE" ]] || [[ "$(cat "$REQ_HASH_FILE")" != "$current_req" ]]; then
