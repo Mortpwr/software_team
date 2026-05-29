@@ -45,6 +45,8 @@ async function downloadAttachment(file) {
       <option>国家级</option>
       <option>校级</option>
       <option>省部级</option>
+      <option>综合类奖学金</option>
+      <option>捐赠类奖学金</option>
     </select>
     <button class="primary">筛选</button>
   </form>

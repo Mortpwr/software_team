@@ -1,4 +1,4 @@
-"""党团平台官方依据：发展党员工作程序（29 环节）、人大 2025-2026 校历、证明模板。"""
+"""党团平台官方依据：发展党员 29 环节、发展团员 15 环节、校历与证明模板。"""
 
 from pathlib import Path
 
@@ -44,7 +44,7 @@ OFFICIAL_META = {
     "contactName": "组织工作咨询",
     "contactPhone": "010-62513007",
     "flowSummary": "5 个阶段 · 29 个环节",
-    "leagueFlowSummary": "4 个阶段 · 8 个环节",
+    "leagueFlowSummary": "5 个阶段 · 15 个环节",
     "semesters": [
         {"term": "fall", "label": "2025-2026 学年秋季学期", "start": "2025-09-08", "end": "2026-01-11"},
         {"term": "spring", "label": "2025-2026 学年春季学期", "start": "2026-03-02", "end": "2026-07-12"},
@@ -53,13 +53,18 @@ OFFICIAL_META = {
 
 STEP_TIME_RULES = {
     "step_02": "收到入党申请书后一个月内完成谈话并记录",
-    "step_05": "培养考察期一般不少于一年，每季度至少一篇思想汇报",
+    "step_05": "党支部每半年对入党积极分子进行一次考察",
     "step_10": "短期集中培训不少于三天（或二十四个学时）并结业",
     "step_13": "接收预备党员公示不少于五个工作日",
     "step_17": "党委审批应在三个月内完成（特殊情况不超过六个月）",
-    "step_22": "预备期一年，从支部大会通过预备党员之日算起",
+    "step_22": "预备期一年，预备党员每季度至少向党支部汇报一次思想和工作情况",
+    "step_23": "预备期满前一周左右主动提交书面转正申请",
     "step_27": "转正审批应在三个月内作出决定",
-    "l_step_04": "培养考察与志愿服务时长以团支部公示为准",
+    "l_step_02": "团组织收到入团申请书后一个月内派人谈话",
+    "l_step_05": "培养考察期应达到三个月以上，培养联系人谈心谈话不少于两次；发展入团前须参加不少于 8 学时团课学习",
+    "l_step_08": "发展对象预审结果公示不少于五个工作日",
+    "l_step_12": "审批应在一个月内完成，并报县级以上团委备案",
+    "l_step_15": "审批同意后一个月内在“智慧团建”系统建立电子档案",
 }
 
 CERT_FIELD_SPECS = {
@@ -95,14 +100,14 @@ THOUGHT_REPORT_GUIDE = {
     "minLength": 50,
 }
 
-# 与数据库 party_stages.stage_key 对齐；macroStage 对应官方流程图五大阶段标题
+# 与数据库 party_stages.stage_key 对齐；macroStage 仅用于官方流程大阶段展示
 OFFICIAL_FLOW_STAGES = [
     {
         "key": "applicant",
         "name": "入党申请人",
         "desc": "接受教育引导，递交入党申请书，党组织派人谈话并留存记录。",
         "order": 1,
-        "macroStage": "申请与谈话",
+        "macroStage": "第一阶段：入党积极分子确定",
         "durationDays": 30,
         "remindBeforeDays": 7,
         "material": "入党申请书（手写或打印签名）、谈话记录表",
@@ -112,7 +117,7 @@ OFFICIAL_FLOW_STAGES = [
         "name": "入党积极分子确定",
         "desc": "经团支部推优、支委会讨论并报党委备案，指定培养联系人，开展一年以上培养考察。",
         "order": 2,
-        "macroStage": "入党积极分子确定",
+        "macroStage": "第一阶段：入党积极分子确定",
         "durationDays": 365,
         "remindBeforeDays": 30,
         "material": "推优表、培养考察登记表、思想汇报（每季度）、培养联系人考察意见",
@@ -122,7 +127,7 @@ OFFICIAL_FLOW_STAGES = [
         "name": "发展对象确定",
         "desc": "支委会听取意见后讨论，报党委备案；确定入党介绍人，完成政治审查与短期集中培训。",
         "order": 3,
-        "macroStage": "发展对象确定",
+        "macroStage": "第二阶段：发展对象确定",
         "durationDays": 90,
         "remindBeforeDays": 14,
         "material": "发展对象备案表、政审材料、培训结业证书、公示记录",
@@ -132,7 +137,7 @@ OFFICIAL_FLOW_STAGES = [
         "name": "预备党员接收与转正",
         "desc": "党委预审、公示、支部大会接收预备党员；预备期内教育考察，期满提交转正申请并完成审批。",
         "order": 4,
-        "macroStage": "预备党员接收 · 教育考察与转正",
+        "macroStage": "第三阶段：预备党员接收",
         "durationDays": 365,
         "remindBeforeDays": 30,
         "material": "入党志愿书、预备党员考察表、转正申请书、支部大会决议、党委审批材料",
@@ -142,7 +147,7 @@ OFFICIAL_FLOW_STAGES = [
         "name": "正式党员",
         "desc": "转正审批通过，材料归档，进入正式党员教育管理。",
         "order": 5,
-        "macroStage": "正式党员",
+        "macroStage": "第五阶段：正式党员",
         "durationDays": 0,
         "remindBeforeDays": 0,
         "material": "党员档案归档清单、组织关系转接材料（如需）",
@@ -151,35 +156,35 @@ OFFICIAL_FLOW_STAGES = [
 
 # 官方流程图 29 环节；stageKey 映射到平台五大阶段
 OFFICIAL_STEPS = [
-    {"id": "step_01", "order": 1, "stageKey": "applicant", "name": "教育引导", "detail": "开展党的基本知识教育，引导向党组织靠拢。"},
-    {"id": "step_02", "order": 2, "stageKey": "applicant", "name": "接收入党申请书并派人谈话", "detail": "收到申请书后一个月内，党支部书记或组织委员同本人谈话并记录。"},
-    {"id": "step_03", "order": 3, "stageKey": "activist", "name": "确定入党积极分子并报党委备案", "detail": "经推优、支委会讨论，报上级党委备案。"},
-    {"id": "step_04", "order": 4, "stageKey": "activist", "name": "指定培养联系人并进行培养教育", "detail": "指定一至两名培养联系人，制定培养计划。"},
-    {"id": "step_05", "order": 5, "stageKey": "activist", "name": "考察", "detail": "培养考察期一般不少于一年，定期思想汇报与考察登记。"},
-    {"id": "step_06", "order": 6, "stageKey": "candidate", "name": "支委会听取意见后讨论", "detail": "听取培养联系人、党员和群众意见，讨论是否列为发展对象。"},
-    {"id": "step_07", "order": 7, "stageKey": "candidate", "name": "报党委备案后确定发展对象", "detail": "报具有审批权限的基层党委备案。"},
-    {"id": "step_08", "order": 8, "stageKey": "candidate", "name": "确定入党介绍人", "detail": "一般应由两名正式党员担任介绍人。"},
-    {"id": "step_09", "order": 9, "stageKey": "candidate", "name": "政治审查", "detail": "对本人及主要社会关系进行政治审查，形成结论性材料。"},
-    {"id": "step_10", "order": 10, "stageKey": "candidate", "name": "短期集中培训", "detail": "发展对象应参加不少于三天（或二十四个学时）的集中培训并结业。"},
-    {"id": "step_11", "order": 11, "stageKey": "probationary", "name": "支委会听取意见后讨论", "detail": "讨论接收预备党员事宜，形成审查意见。"},
-    {"id": "step_12", "order": 12, "stageKey": "probationary", "name": "报党委预审", "detail": "支委会上报预审材料，党委审查后出具书面意见。"},
-    {"id": "step_13", "order": 13, "stageKey": "probationary", "name": "公示", "detail": "对拟接收预备党员进行不少于五个工作日的公示。"},
-    {"id": "step_14", "order": 14, "stageKey": "probationary", "name": "召开支部大会讨论接收预备党员", "detail": "有表决权的到会人数须超过应到会人数半数，无记名投票表决。"},
-    {"id": "step_15", "order": 15, "stageKey": "probationary", "name": "将有关材料报党委", "detail": "上报入党志愿书等完整材料。"},
-    {"id": "step_16", "order": 16, "stageKey": "probationary", "name": "党委委员或组织员与发展对象谈话", "detail": "作进一步了解和审查。"},
-    {"id": "step_17", "order": 17, "stageKey": "probationary", "name": "党委审批", "detail": "三个月内完成审批，特殊情况不超过六个月。"},
-    {"id": "step_18", "order": 18, "stageKey": "probationary", "name": "党委审批结果通知党支部", "detail": "书面通知审批结果。"},
-    {"id": "step_19", "order": 19, "stageKey": "probationary", "name": "报上级党委组织部门备案", "detail": "预备党员接收情况报上级组织部门备案。"},
-    {"id": "step_20", "order": 20, "stageKey": "probationary", "name": "编入党支部和党小组", "detail": "参加党的组织生活，接受教育考察。"},
-    {"id": "step_21", "order": 21, "stageKey": "probationary", "name": "入党宣誓", "detail": "在正式场合举行入党宣誓仪式。"},
-    {"id": "step_22", "order": 22, "stageKey": "probationary", "name": "教育和考察", "detail": "预备期一年，继续考察并填写考察登记表。"},
-    {"id": "step_23", "order": 23, "stageKey": "probationary", "name": "接收转正申请、征求意见并审查", "detail": "预备期满前提交转正申请书，支委会审查。"},
-    {"id": "step_24", "order": 24, "stageKey": "probationary", "name": "公示", "detail": "对拟转正的预备党员进行公示。"},
-    {"id": "step_25", "order": 25, "stageKey": "probationary", "name": "召开支部大会讨论预备党员转正", "detail": "讨论是否按期转正、延长预备期或取消资格。"},
-    {"id": "step_26", "order": 26, "stageKey": "probationary", "name": "将有关材料报党委", "detail": "上报转正相关材料。"},
-    {"id": "step_27", "order": 27, "stageKey": "probationary", "name": "党委审批", "detail": "三个月内作出转正、延长或取消的决定。"},
-    {"id": "step_28", "order": 28, "stageKey": "probationary", "name": "党委审批结果通知党支部", "detail": "党支部及时通知本人并在党员大会上宣布。"},
-    {"id": "step_29", "order": 29, "stageKey": "member", "name": "存档", "detail": "党员材料归入人事档案或党员档案专卷。"},
+    {"id": "step_01", "order": 1, "stageKey": "applicant", "name": "教育引导", "detail": "党组织通过宣传党的政治主张和深入细致的思想政治工作，提高党外群众对党的认识，引导端正入党动机，了解党的性质、宗旨和纲领。"},
+    {"id": "step_02", "order": 2, "stageKey": "applicant", "name": "接收入党申请书并派人谈话", "detail": "申请人向工作、学习所在单位党组织提出书面申请。党组织收到申请书后一个月内，派支部书记、副书记或组织委员谈话，了解基本情况、入党动机和思想状况，并给予鼓励指导。"},
+    {"id": "step_03", "order": 3, "stageKey": "activist", "name": "确定入党积极分子并报党委备案", "detail": "采取党员推荐或群团组织推优等方式产生人选，由支部委员会研究决定；不设支委会的由支部大会研究决定。确定后将名单报上级党委备案。"},
+    {"id": "step_04", "order": 4, "stageKey": "activist", "name": "指定培养联系人并进行培养教育", "detail": "党组织指定一至两名正式党员作为培养联系人，介绍党的知识，了解思想动态，定期向党支部汇报培养考察情况，帮助改正缺点。"},
+    {"id": "step_05", "order": 5, "stageKey": "activist", "name": "考察", "detail": "党支部每半年对入党积极分子进行一次考察，通过听取培养联系人汇报、查阅思想汇报、观察实际表现等方式分析政治觉悟和现实表现，并填入考察表。"},
+    {"id": "step_06", "order": 6, "stageKey": "candidate", "name": "支部委员会听取意见后讨论", "detail": "经过一年以上培养教育和考察、基本具备党员条件的积极分子，在听取党小组、培养联系人、党员和群众意见基础上，由支部委员会讨论同意。"},
+    {"id": "step_07", "order": 7, "stageKey": "candidate", "name": "报党委备案后确定发展对象", "detail": "党支部将拟确定的发展对象人选报上级党委备案；上级党委审核同意后，党支部正式确定为发展对象并启动后续政审等工作。"},
+    {"id": "step_08", "order": 8, "stageKey": "candidate", "name": "确定入党介绍人", "detail": "发展对象应有两名正式党员作入党介绍人，一般由培养联系人担任，也可由党组织指定；介绍人负责指导填写《入党志愿书》并在支部大会介绍情况。"},
+    {"id": "step_09", "order": 9, "stageKey": "candidate", "name": "政治审查", "detail": "党组织必须进行政治审查，内容包括对党的理论和路线方针政策的态度、政治历史和重大政治斗争表现、遵纪守法和社会公德情况，以及直系亲属和主要社会关系政治情况，并形成结论性材料。"},
+    {"id": "step_10", "order": 10, "stageKey": "candidate", "name": "短期集中培训", "detail": "基层党委或县级党委组织部门对发展对象进行短期集中培训，时间一般不少于三天或二十四个学时；主要学习党章和党内政治生活准则等，未经培训除特殊情况外不能发展入党。"},
+    {"id": "step_11", "order": 11, "stageKey": "probationary", "name": "支部委员会听取意见后讨论", "detail": "在发展对象未来三个月内，支部委员会对其条件进行严格审查，经集体讨论认为合格后，报具有审批权限的基层党委预审。"},
+    {"id": "step_12", "order": 12, "stageKey": "probationary", "name": "报党委预审", "detail": "党支部将入党申请书、思想汇报、政审材料、培训情况等材料报送基层党委，党委审查是否具备党员条件、入党手续是否完备。"},
+    {"id": "step_13", "order": 13, "stageKey": "probationary", "name": "公示", "detail": "经基层党委预审合格的发展对象，在提交支部大会讨论前应在一定范围内公示，公示期一般不少于五个工作日，接受党员群众监督。"},
+    {"id": "step_14", "order": 14, "stageKey": "probationary", "name": "召开支部大会讨论接收预备党员", "detail": "会议包括发展对象汇报、介绍人介绍、支委会报告审查情况、与会党员讨论并无记名投票表决；赞成人数超过应到会有表决权党员半数方可通过。"},
+    {"id": "step_15", "order": 15, "stageKey": "probationary", "name": "将有关材料报党委", "detail": "支部大会通过后，党支部及时将决议写入《入党志愿书》，连同入党申请书、政治审查材料、培养教育考察材料等报上级党委审批。"},
+    {"id": "step_16", "order": 16, "stageKey": "probationary", "name": "党委委员或组织员与发展对象谈话", "detail": "党委审批前，指派党委委员或组织员同发展对象谈话，进一步了解情况并帮助提高对党的认识；谈话情况和能否入党的意见如实填入《入党志愿书》。"},
+    {"id": "step_17", "order": 17, "stageKey": "probationary", "name": "党委审批", "detail": "党委必须在三个月内审批，特殊情况不超过六个月；审批由党委会集体讨论和表决，两个以上发展对象应逐个审议和表决。"},
+    {"id": "step_18", "order": 18, "stageKey": "probationary", "name": "党委审批结果通知党支部", "detail": "党委审批意见应及时通知报批党支部；党支部及时通知本人并在党员大会上宣布。未被批准的，应做好本人思想工作。"},
+    {"id": "step_19", "order": 19, "stageKey": "probationary", "name": "报上级党委组织部门备案", "detail": "审批通过的预备党员名单报上一级党委组织部门备案，纳入党员信息管理系统统一管理。"},
+    {"id": "step_20", "order": 20, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "编入党支部和党小组", "detail": "党组织应及时将上级党委批准的预备党员编入党支部和党小组，通过参加党的组织生活继续教育和考察。"},
+    {"id": "step_21", "order": 21, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "入党宣誓", "detail": "预备党员必须面向党旗进行入党宣誓。宣誓仪式一般由基层党委或党支部组织，是党员政治生命开始的象征，也是自我教育形式。"},
+    {"id": "step_22", "order": 22, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "教育和考察", "detail": "预备期为一年。党组织通过听取本人汇报、个别谈心、集中培训等方式教育考察；预备党员每季度至少向党支部汇报一次思想和工作情况。"},
+    {"id": "step_23", "order": 23, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "接收转正申请，征求意见并审查", "detail": "预备期满前一周左右，预备党员主动提出书面转正申请；党小组提出意见，党支部征求党员群众意见，支部委员会审查其预备期表现。"},
+    {"id": "step_24", "order": 24, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "公示", "detail": "召开支部大会讨论转正前，对拟转正的预备党员进行公示，保证程序公开透明。"},
+    {"id": "step_25", "order": 25, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "召开支部大会讨论预备党员转正", "detail": "支部大会讨论、表决预备党员能否转正，程序与接收预备党员类似，采取无记名投票。具备条件的按期转正，需要继续考察的可延长一次预备期，不履行义务的取消资格。"},
+    {"id": "step_26", "order": 26, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "将有关材料报党委", "detail": "支部大会通过后，党支部将转正申请书、考察表、支部大会决议等相关材料报上级党委审批。"},
+    {"id": "step_27", "order": 27, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "党委审批", "detail": "党委应当在三个月内审批预备党员转正问题，并作出按期转正、延长预备期或取消预备党员资格的决定。"},
+    {"id": "step_28", "order": 28, "stageKey": "probationary", "macroStage": "第四阶段：预备党员的教育、考察和转正", "name": "党委审批结果通知党支部", "detail": "党委审批结果及时通知党支部；党支部书记同本人谈话，并将审批结果在党员大会上宣布。党员党龄从预备期满转为正式党员之日算起。"},
+    {"id": "step_29", "order": 29, "stageKey": "member", "name": "存档", "detail": "《入党志愿书》等有关材料存入本人人事档案；无人事档案的建立党员档案，由所在党委或县级党委组织部门保存。"},
 ]
 
 # Phase 1/2：环节 ↔ 材料清单映射（学生需上传扫描件/ PDF 的环节）
@@ -214,37 +219,52 @@ STEP_MATERIALS_MAP = {
     "step_28": ["转正结果通知"],
     "step_29": ["党员档案归档清单"],
     "l_step_01": ["入团申请书（签名扫描件）"],
-    "l_step_02": ["团课学习记录", "青年大学习截图"],
-    "l_step_03": ["入团积极分子备案表"],
-    "l_step_04": ["培养考察表", "志愿服务时长证明"],
-    "l_step_05": ["评议表", "公示记录"],
-    "l_step_06": ["审批表", "上级团委批复"],
-    "l_step_08": ["团员证复印件", "志愿书归档回执"],
+    "l_step_02": ["谈话记录"],
+    "l_step_03": ["团员推荐或少先队推优材料", "支委会会议记录", "基层团委批准材料"],
+    "l_step_04": ["培养联系人登记表"],
+    "l_step_05": ["培养考察表", "团课学习记录", "志愿服务记录"],
+    "l_step_06": ["发展对象推荐意见", "综合评价材料"],
+    "l_step_07": ["发展对象预审材料", "基层团委预审意见"],
+    "l_step_08": ["公示截图或照片", "公示情况说明"],
+    "l_step_09": ["入团介绍人登记表"],
+    "l_step_10": ["入团志愿书"],
+    "l_step_11": ["支部大会表决记录", "接收新团员决议"],
+    "l_step_12": ["基层团委审批意见", "县级以上团委备案材料"],
+    "l_step_13": ["审批结果通知记录"],
+    "l_step_14": ["入团宣誓签到或照片", "团章团员证团徽发放记录"],
+    "l_step_15": ["团员纸质档案清单", "智慧团建电子档案截图"],
 }
 
 LEAGUE_FLOW_STAGES = [
-    {"key": "l_apply", "name": "入团申请", "desc": "递交入团申请书，参加团课学习与团支部活动。", "order": 1},
-    {"key": "l_activist", "name": "入团积极分子", "desc": "团支部培养考察，完成志愿服务时长等要求（以团支部公示为准）。", "order": 2},
-    {"key": "l_develop", "name": "发展对象", "desc": "支委会（团支委）评议、公示与上级团委审批。", "order": 3},
-    {"key": "l_member", "name": "共青团员", "desc": "入团宣誓、团员证与档案归档。", "order": 4},
+    {"key": "l_apply", "name": "申请入团", "desc": "符合年龄和章程条件的青年向所在单位团组织提交书面入团申请，团组织一个月内派人谈话。", "order": 1},
+    {"key": "l_activist", "name": "入团积极分子培养考察", "desc": "择优确定入团积极分子，指定培养联系人，开展三个月以上培养教育、团课学习和实践考察。", "order": 2},
+    {"key": "l_develop", "name": "发展对象确定", "desc": "推荐、预审、公示发展对象，并确定两名入团介绍人。", "order": 3},
+    {"key": "l_member", "name": "新团员接收与档案管理", "desc": "填写入团志愿书，支部大会讨论，基层团委审批备案，举行入团仪式并建立纸质与电子档案。", "order": 4},
 ]
 
 LEAGUE_STEPS = [
-    {"id": "l_step_01", "order": 1, "stageKey": "l_apply", "name": "提交入团申请书", "detail": "向团支部提交书面申请，说明入团动机。"},
-    {"id": "l_step_02", "order": 2, "stageKey": "l_apply", "name": "参加团课学习", "detail": "完成团支部组织的团课与青年大学习要求。"},
-    {"id": "l_step_03", "order": 3, "stageKey": "l_activist", "name": "确定入团积极分子", "detail": "团支部讨论并报上级团组织备案。"},
-    {"id": "l_step_04", "order": 4, "stageKey": "l_activist", "name": "培养考察与志愿服务", "detail": "按要求完成志愿时长、社会实践等（参考校历与社会实践安排）。"},
-    {"id": "l_step_05", "order": 5, "stageKey": "l_develop", "name": "支部评议与公示", "detail": "团支委会评议并公示拟发展对象。"},
-    {"id": "l_step_06", "order": 6, "stageKey": "l_develop", "name": "上级团委审批", "detail": "报学院团委或校团委审批。"},
-    {"id": "l_step_07", "order": 7, "stageKey": "l_member", "name": "入团宣誓", "detail": "在团支部大会上举行入团宣誓。"},
-    {"id": "l_step_08", "order": 8, "stageKey": "l_member", "name": "档案归档", "detail": "团员证、志愿书等材料归档；需要时可开具团员证明。"},
+    {"id": "l_step_01", "order": 1, "stageKey": "l_apply", "macroStage": "一、申请入团", "name": "提交入团申请书", "detail": "年龄在十四周岁以上、二十八周岁以下的中国青年，承认团的章程，愿意参加团的一个组织并积极工作、执行团的决议和按期交纳团费的，可以向工作、学习所在单位团组织提出书面申请。未满十四周岁的，团组织应肯定政治追求并做好解释。"},
+    {"id": "l_step_02", "order": 2, "stageKey": "l_apply", "macroStage": "一、申请入团", "name": "派人谈话", "detail": "团组织收到入团申请书后，应当在一个月内派人同入团申请人谈话，了解其基本情况和入团动机。"},
+    {"id": "l_step_03", "order": 3, "stageKey": "l_activist", "macroStage": "二、入团积极分子的确定", "name": "确定入团积极分子", "detail": "在入团申请人中择优确定入团积极分子，可采取团员推荐、少先队组织推优等方式产生人选，注意听取群众意见，由支部委员会研究决定，并报基层团（工）委批准。"},
+    {"id": "l_step_04", "order": 4, "stageKey": "l_activist", "macroStage": "二、入团积极分子的确定", "name": "指定培养联系人", "detail": "入团积极分子的培养联系人应由一至两名团员或者党员担任；中学生一般至少有一名教职工。联系人负责宣传党的创新理论和历史、介绍团的基本知识、了解政治觉悟与道德品质、引导端正入团动机并及时汇报。"},
+    {"id": "l_step_05", "order": 5, "stageKey": "l_activist", "macroStage": "三、入团积极分子的教育、培养和考察", "name": "教育、培养和考察", "detail": "培养考察期应达到三个月以上，培养联系人谈心谈话不少于两次。团组织开展党史、新中国史、改革开放史、社会主义发展史及团史、团章教育；发展入团前须参加不少于 8 学时团课学习，并参与志愿服务等实践活动。"},
+    {"id": "l_step_06", "order": 6, "stageKey": "l_develop", "macroStage": "四、发展对象的确定", "name": "推荐发展对象", "detail": "经过三个月以上培养教育和考察、基本具备团员条件的入团积极分子，可列为发展对象。评价须把政治标准放在首位，防止唯成绩、唯票数，任何个人不得指定发展对象。"},
+    {"id": "l_step_07", "order": 7, "stageKey": "l_develop", "macroStage": "四、发展对象的确定", "name": "预审发展对象", "detail": "发展对象经支部委员会讨论同意后，报具有审批权限的基层团（工）委预审；基层团委对基本条件、团课学习、志愿服务及综合评价结果等进行严格预审。"},
+    {"id": "l_step_08", "order": 8, "stageKey": "l_develop", "macroStage": "四、发展对象的确定", "name": "公示发展对象", "detail": "预审结果应当公示并接受群众监督，公示期不少于五个工作日。"},
+    {"id": "l_step_09", "order": 9, "stageKey": "l_develop", "macroStage": "四、发展对象的确定", "name": "确定入团介绍人", "detail": "发展对象应当有两名团员或党员作入团介绍人，一般由培养联系人担任。介绍人负责解释党和团的关系、说明团员权利与义务、指导填写《入团志愿书》，并在支部大会如实介绍情况。"},
+    {"id": "l_step_10", "order": 10, "stageKey": "l_member", "macroStage": "五、新团员的接收", "name": "填写入团志愿书", "detail": "预审合格的发展对象认真、如实填写《中国共产主义青年团入团志愿书》。"},
+    {"id": "l_step_11", "order": 11, "stageKey": "l_member", "macroStage": "五、新团员的接收", "name": "支部大会讨论", "detail": "召开讨论接收新团员的支部大会，有表决权的到会人数须超过应到会有表决权人数半数。会议包括发展对象汇报、介绍人发表意见、支委会报告审议意见、与会团员充分讨论并无记名投票表决，赞成人数超过应到会有表决权团员半数方可通过。"},
+    {"id": "l_step_12", "order": 12, "stageKey": "l_member", "macroStage": "五、新团员的接收", "name": "基层团（工）委审批、县级以上团委备案", "detail": "团支部将决议写入《入团志愿书》并报上级团（工）委审批。审批必须由团委集体审议、表决决定，不能由个人决定；应在一个月内完成审批，并报县级以上团委备案。"},
+    {"id": "l_step_13", "order": 13, "stageKey": "l_member", "macroStage": "五、新团员的接收", "name": "审批结果反馈", "detail": "团支部及时将审批结果通知本人并在支部大会上宣布。被批准的从支部大会通过之日起取得团籍；未被批准的，团组织应及时通知本人并帮助其继续努力进步。"},
+    {"id": "l_step_14", "order": 14, "stageKey": "l_member", "macroStage": "五、新团员的接收", "name": "入团仪式", "detail": "新团员必须参加入团仪式，在团旗下进行入团宣誓。团组织按规定向新团员颁发团章、团员证和团徽徽章。"},
+    {"id": "l_step_15", "order": 15, "stageKey": "l_member", "macroStage": "五、新团员的接收", "name": "档案管理", "detail": "规范建立新团员纸质档案，主要包括入团志愿书、入团申请书、培养考察材料、团员证等。审批同意后一个月内，须在“智慧团建”系统建立电子档案。入团志愿书是首要团员档案，遗失或不完整的不补办。"},
 ]
 
 LEAGUE_TIMELINE = [
-    {"stageKey": "l_apply", "durationDays": 14, "remindBeforeDays": 3, "material": "入团申请书、团课学习记录"},
-    {"stageKey": "l_activist", "durationDays": 90, "remindBeforeDays": 14, "material": "培养考察表、志愿服务时长证明"},
-    {"stageKey": "l_develop", "durationDays": 30, "remindBeforeDays": 7, "material": "评议材料、公示记录、审批表"},
-    {"stageKey": "l_member", "durationDays": 0, "remindBeforeDays": 0, "material": "团员证、志愿书归档"},
+    {"stageKey": "l_apply", "durationDays": 30, "remindBeforeDays": 7, "material": "入团申请书、谈话记录"},
+    {"stageKey": "l_activist", "durationDays": 90, "remindBeforeDays": 14, "material": "培养联系人登记表、培养考察表、8 学时团课学习记录、志愿服务记录"},
+    {"stageKey": "l_develop", "durationDays": 30, "remindBeforeDays": 7, "material": "发展对象推荐意见、预审材料、公示记录、入团介绍人登记表"},
+    {"stageKey": "l_member", "durationDays": 30, "remindBeforeDays": 7, "material": "入团志愿书、支部大会决议、基层团委审批意见、入团仪式记录、纸质档案与智慧团建电子档案"},
 ]
 
 CALENDAR_HIGHLIGHTS = [
@@ -413,16 +433,17 @@ OFFICIAL_KNOWLEDGE = [
     ),
     (
         "k_party_league",
-        "共青团员发展流程（8 环节）",
+        "共青团员发展流程（15 环节）",
         "党团事务",
         ["入团", "共青团", "团员证明"],
-        "入团申请 → 团课学习 → 积极分子培养 → 评议公示 → 上级审批 → 宣誓归档。",
-        """## 四个阶段
+        "申请入团 → 积极分子确定 → 教育培养考察 → 发展对象确定 → 新团员接收，共 5 阶段 15 环节。",
+        """## 五个阶段
 
-1. **入团申请**：提交申请书，参加团课与青年大学习
-2. **入团积极分子**：团支部培养考察，完成志愿服务时长（以公示为准）
-3. **发展对象**：支委会评议、公示，报学院/校团委审批
-4. **共青团员**：入团宣誓，团员证与志愿书归档
+1. **申请入团**：提交书面入团申请书；团组织一个月内派人谈话。
+2. **入团积极分子确定**：团员推荐、少先队推优或群众意见产生人选，支委会研究并报基层团（工）委批准。
+3. **教育、培养和考察**：培养考察期三个月以上，谈心谈话不少于两次，发展入团前参加不少于 8 学时团课并参与志愿服务。
+4. **发展对象确定**：推荐发展对象、基层团委预审、公示不少于五个工作日，并确定两名入团介绍人。
+5. **新团员接收**：填写《入团志愿书》，支部大会无记名投票，基层团委一个月内审批并备案，举行入团仪式，建立纸质档案和“智慧团建”电子档案。
 
 ## 团员证明
 
@@ -454,7 +475,7 @@ OFFICIAL_THEORY_QUESTIONS = [
     ("theory_off_09", "政治审查的主要对象是发展对象本人；对主要社会关系的审查，原则上不查其祖父母和外祖父母。", "正确;错误", "正确", "政审范围按细则规定把握。", "政治审查"),
     ("theory_off_10", "预备党员可以参加讨论本人转正的支部大会，并作为有表决权党员参与投票。", "正确;错误", "错误", "预备党员没有表决权、选举权和被选举权，转正讨论时本人可参加但不参与表决。", "预备党员"),
     ("theory_off_11", "发展党员工作程序共 29 个环节，分为 5 个阶段。", "正确;错误", "正确", "官方流程图标注为 5 阶段 29 环节。", "发展程序"),
-    ("theory_off_12", "团员发展对象须经过团支部评议公示和上级团委审批。", "正确;错误", "正确", "入团程序需经团支部与上级团组织审批。", "共青团"),
+    ("theory_off_12", "发展团员流程包括申请入团、积极分子确定、教育培养考察、发展对象确定、新团员接收等环节。", "正确;错误", "正确", "当前平台按 5 阶段 15 环节维护入团流程。", "共青团"),
     ("theory_off_13", "对拟接收为预备党员的对象，公示期一般不少于五个工作日。", "正确;错误", "正确", "官方流程图环节 13 明确要求。", "预备党员接收"),
     ("theory_off_14", "党委对预备党员转正作出决定的期限一般为三个月。", "正确;错误", "正确", "环节 27 与细则一致。", "预备党员转正"),
     ("theory_off_15", "入党积极分子思想汇报一般每季度至少提交一篇。", "正确;错误", "正确", "培养考察期材料要求。", "积极分子"),
@@ -473,7 +494,7 @@ def _league_stage_macro_map() -> dict[str, str]:
 def enrich_official_step(step: dict, *, league: bool = False) -> dict:
     macro_map = _league_stage_macro_map() if league else _stage_macro_map()
     payload = dict(step)
-    payload["macroStage"] = macro_map.get(step["stageKey"], "")
+    payload["macroStage"] = step.get("macroStage") or macro_map.get(step["stageKey"], "")
     payload["timeRule"] = STEP_TIME_RULES.get(step["id"], "")
     payload["materialCatalog"] = STEP_MATERIALS_MAP.get(step["id"], [])
     return payload

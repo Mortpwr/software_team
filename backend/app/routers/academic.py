@@ -22,6 +22,7 @@ from app.models import AcademicPlan, AcademicProgress, Student
 
 from app.schemas import AcademicPlanPut, AcademicProgressPut, TranscriptMetaCreate
 
+from app.services.academic_catalog import enrich_plan_payload
 from app.services.common import audit
 
 from app.services.serializers import academic_plan, academic_progress
@@ -48,7 +49,8 @@ def plan(db: Session = Depends(get_db), session: CurrentSession = Depends(get_cu
 
     key = f"{student.grade}|{student.major}"
 
-    return {"plan": academic_plan(db.get(AcademicPlan, key)), "progress": academic_progress(db.get(AcademicProgress, session.student_id))}
+    plan_payload = enrich_plan_payload(academic_plan(db.get(AcademicPlan, key)), student.grade, student.major)
+    return {"plan": plan_payload, "progress": academic_progress(db.get(AcademicProgress, session.student_id))}
 
 
 
@@ -84,12 +86,22 @@ def report(db: Session = Depends(get_db), session: CurrentSession = Depends(get_
         modules.append({**item, "earned": earned, "gap": gap, "risk": "高" if gap >= 4 else "中" if gap >= 2 else "低"})
 
     gap_items = [m for m in modules if m["gap"] > 0]
+    total_required = round(sum(float(item.get("required", 0) or 0) for item in modules), 1)
+    total_earned = round(sum(float(item.get("earned", 0) or 0) for item in modules), 1)
+    total_gap = round(max(0, total_required - total_earned), 1)
 
     return {
 
         "ok": True,
 
         "modules": modules,
+        "moduleGroups": module_groups(modules),
+        "overview": plan_row.get("overview"),
+        "courseMap": plan_row.get("courseMap"),
+        "graduationRequirements": plan_row.get("graduationRequirements", []),
+        "totalRequired": total_required,
+        "totalEarned": total_earned,
+        "totalGap": total_gap,
 
         "riskLevel": "高" if any(m["risk"] == "高" for m in modules) else "中" if any(m["risk"] == "中" for m in modules) else "低",
 
@@ -374,9 +386,38 @@ def normalize_modules(modules: list[dict]) -> list[dict]:
 
         seen.add(key)
 
-        result.append({"key": key, "name": name, "required": float(item.get("required", 0) or 0)})
+        normalized = {
+            "key": key,
+            "name": name,
+            "required": float(item.get("required", 0) or 0),
+        }
+        for extra in ("group", "requirement", "courses", "tracks"):
+            if extra in item:
+                normalized[extra] = item[extra]
+        result.append(normalized)
 
     return result
+
+
+def module_groups(modules: list[dict]) -> list[dict]:
+    grouped: dict[str, dict] = {}
+    for item in modules:
+        group = str(item.get("group") or "其他").strip() or "其他"
+        bucket = grouped.setdefault(group, {"name": group, "required": 0.0, "earned": 0.0, "gap": 0.0, "modules": []})
+        bucket["modules"].append(item)
+        bucket["required"] += float(item.get("required", 0) or 0)
+        bucket["earned"] += float(item.get("earned", 0) or 0)
+        bucket["gap"] += float(item.get("gap", 0) or 0)
+    return [
+        {
+            **item,
+            "required": round(item["required"], 1),
+            "earned": round(item["earned"], 1),
+            "gap": round(item["gap"], 1),
+            "risk": "高" if any(m.get("risk") == "高" for m in item["modules"]) else "中" if any(m.get("risk") == "中" for m in item["modules"]) else "低",
+        }
+        for item in grouped.values()
+    ]
 
 
 
@@ -471,5 +512,3 @@ def group_plan_rows(rows: list[dict]) -> list[dict]:
         grouped[key]["modules"].append({"key": row["key"], "name": row["name"], "required": float(row["required"])})
 
     return list(grouped.values())
-
-

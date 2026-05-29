@@ -5,9 +5,11 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from app.models import Student
+from app.services.academic_catalog import ensure_academic_official_content
 from app.services.passwords import default_initial_password, hash_password
 from app.services.party_bootstrap import ensure_party_official_content
 from app.services.seed_data import STUDENTS
+from app.services.scholarship_catalog import ensure_scholarship_catalog
 
 
 def ensure_schema(engine: Engine) -> None:
@@ -100,11 +102,25 @@ def ensure_schema(engine: Engine) -> None:
 
     backfill_student_defaults(engine)
     sync_party_official_content(engine)
+    sync_academic_official_content(engine)
+    sync_scholarship_catalog(engine)
 
 
 def sync_party_official_content(engine: Engine) -> None:
     with Session(engine) as db:
         ensure_party_official_content(db)
+
+
+def sync_academic_official_content(engine: Engine) -> None:
+    with Session(engine) as db:
+        ensure_academic_official_content(db)
+        db.commit()
+
+
+def sync_scholarship_catalog(engine: Engine) -> None:
+    with Session(engine) as db:
+        ensure_scholarship_catalog(db)
+        db.commit()
 
 
 def backfill_student_defaults(engine: Engine) -> None:

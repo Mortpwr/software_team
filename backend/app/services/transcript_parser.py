@@ -7,16 +7,58 @@ from io import BytesIO
 
 # 课程类别关键词 → 培养方案模块 key
 CATEGORY_MAP = {
+    "思想政治理论": "ideology_required",
+    "思政": "ideology_required",
     "通识必修": "gen_req",
     "通识": "gen_req",
     "公共必修": "gen_req",
+    "公共外语": "basic_skills",
+    "外语": "basic_skills",
+    "英语": "basic_skills",
+    "体育": "public_pe",
+    "国际暑期": "international_summer",
+    "部类共同": "category_common",
+    "部类基础": "category_foundation",
     "专业核心": "major_core",
     "专业必修": "major_core",
+    "个性化选修": "personalized_elective",
     "专业选修": "major_ele",
     "选修": "major_ele",
     "实践": "practice",
     "实习": "practice",
     "实验": "practice",
+    "研究训练": "research_training",
+    "毕业论文": "thesis",
+    "军事": "military",
+    "劳动": "labor_education",
+    "职业生涯": "career_planning",
+    "志愿服务": "volunteer_service",
+}
+
+COURSE_MODULE_OVERRIDES = {
+    "高等数学": "category_common",
+    "高等代数": "category_common",
+    "普通物理": "category_common",
+    "程序设计": "category_foundation",
+    "离散数学": "major_core",
+    "概率论与数理统计": "major_core",
+    "数据结构与算法": "major_core",
+    "计算理论导论": "major_core",
+    "计算机系统基础": "major_core",
+    "操作系统": "major_core",
+    "并行计算": "major_core",
+    "计算机网络": "major_core",
+    "数据科学导论": "major_core",
+    "机器学习": "major_core",
+    "数据库系统概论": "major_core",
+    "编译原理": "major_core",
+    "网络空间安全引论": "major_core",
+    "软件工程导论": "major_core",
+    "综合设计": "professional_practice",
+    "程序设计实践": "personalized_elective",
+    "学术调研与论文写作": "thesis",
+    "专业实习": "professional_practice",
+    "毕业论文": "thesis",
 }
 
 # 行模式：课程名 + 类别/性质 + 学分 + 成绩
@@ -224,6 +266,9 @@ def infer_category(name: str) -> str:
 
 
 def map_category(category: str, name: str) -> str:
+    for keyword, key in COURSE_MODULE_OVERRIDES.items():
+        if keyword in (name or ""):
+            return key
     for keyword, key in CATEGORY_MAP.items():
         if keyword in (category or "") or keyword in (name or ""):
             return key
@@ -240,9 +285,29 @@ def aggregate_modules(courses: list[dict], plan_modules: list[dict]) -> list[dic
 
     plan_keys = {m.get("key") for m in plan_modules}
     if plan_keys:
-        return [{"key": k, "earned": round(v, 1)} for k, v in totals.items() if k in plan_keys]
+        normalized_totals: dict[str, float] = {}
+        for key, value in totals.items():
+            target = normalize_module_key_for_plan(key, plan_keys)
+            if target:
+                normalized_totals[target] = normalized_totals.get(target, 0) + value
+        return [{"key": k, "earned": round(v, 1)} for k, v in normalized_totals.items()]
 
     return [{"key": k, "earned": round(v, 1)} for k, v in totals.items()]
+
+
+def normalize_module_key_for_plan(key: str, plan_keys: set[str]) -> str:
+    if key in plan_keys:
+        return key
+    aliases = {
+        "gen_req": "general_courses",
+        "gen_ele": "general_courses",
+        "major_ele": "personalized_elective",
+        "practice": "professional_practice",
+    }
+    target = aliases.get(key, "")
+    if target in plan_keys:
+        return target
+    return ""
 
 
 def course_suggestions(gaps: list[dict]) -> list[dict]:

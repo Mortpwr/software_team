@@ -55,6 +55,21 @@ const certDoc = computed(() => {
   if (tab.value === "party") return officialDocs.value.find((d) => d.key === "party_cert");
   return officialDocs.value.find((d) => d.key === "league_cert");
 });
+const activeStepCount = computed(() => activeFlow.value?.steps?.length || (tab.value === "party" ? 29 : 15));
+
+function groupProgress(group) {
+  const steps = group.steps || [];
+  const done = steps.filter((step) => step.done || step.passed || step.verified).length;
+  return `${done}/${steps.length}`;
+}
+
+function groupStatusClass(group) {
+  const steps = group.steps || [];
+  if (steps.some((step) => step.current)) return "current";
+  if (steps.length && steps.every((step) => step.done || step.passed || step.verified)) return "done";
+  if (steps.every((step) => step.upcoming)) return "upcoming";
+  return "";
+}
 
 onMounted(load);
 
@@ -271,6 +286,45 @@ async function submitThoughtReport() {
       <p v-if="currentRule" class="muted">材料要求：{{ currentRule.material }}</p>
     </div>
 
+    <section class="card flowchart-card">
+      <div class="row between wrap">
+        <div>
+          <h3>{{ activeFlow.flowName }}流程图</h3>
+          <p class="muted">按上传流程数据生成：{{ tab === "party" ? "5 阶段 29 环节" : "5 阶段 15 环节" }}</p>
+        </div>
+        <span class="tag orange">当前：{{ current?.name || "未定位" }}</span>
+      </div>
+      <div class="flowchart-grid" :class="{ league: tab === 'league' }">
+        <article
+          v-for="(group, index) in stepsByMacro"
+          :key="group.name"
+          class="flow-phase"
+          :class="groupStatusClass(group)"
+          :style="{ '--phase-index': index + 1 }"
+        >
+          <div class="phase-head">
+            <span class="phase-number">{{ index + 1 }}</span>
+            <div>
+              <h4>{{ group.name }}</h4>
+              <p class="muted">进度 {{ groupProgress(group) }}</p>
+            </div>
+          </div>
+          <ol class="flow-step-list">
+            <li
+              v-for="step in group.steps"
+              :key="step.id"
+              :class="{ current: step.current, done: step.done || step.passed || step.verified, pending: step.pendingVerify }"
+            >
+              <span class="flow-index">{{ step.order }}</span>
+              <span class="flow-title">{{ step.name }}</span>
+              <span v-if="step.current" class="flow-state">当前</span>
+              <span v-else-if="step.pendingVerify" class="flow-state">待确认</span>
+            </li>
+          </ol>
+        </article>
+      </div>
+    </section>
+
     <div class="grid cols-2">
       <section>
         <div class="section-title">流程总览</div>
@@ -374,7 +428,7 @@ async function submitThoughtReport() {
 
     <section class="card">
       <div class="row between">
-        <h3>{{ tab === "party" ? "完整 29 环节" : "完整 8 环节" }}对照（官方流程图）</h3>
+        <h3>完整 {{ activeStepCount }} 环节对照（官方流程图）</h3>
         <button @click="showFullSteps = !showFullSteps">{{ showFullSteps ? "收起" : "展开全部" }}</button>
       </div>
       <p class="muted">与《发展党员工作程序图》/ 入团流程一致，可按大阶段查看各环节时限与材料要求。</p>
@@ -511,5 +565,158 @@ async function submitThoughtReport() {
 }
 .calendar-row {
   margin-bottom: 8px;
+}
+.flowchart-card {
+  overflow: hidden;
+}
+.flowchart-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.flow-phase {
+  position: relative;
+  min-width: 190px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+}
+.flow-phase::after {
+  position: absolute;
+  top: 28px;
+  right: -16px;
+  width: 20px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.42), rgba(6, 182, 212, 0.22));
+  content: "";
+}
+.flow-phase:last-child::after {
+  display: none;
+}
+.flow-phase.current {
+  border-color: rgba(249, 115, 22, 0.42);
+  background: linear-gradient(180deg, rgba(255, 247, 237, 0.9), rgba(255, 255, 255, 0.76));
+}
+.flow-phase.done {
+  border-color: rgba(5, 150, 105, 0.26);
+  background: linear-gradient(180deg, rgba(236, 253, 245, 0.86), rgba(255, 255, 255, 0.74));
+}
+.flow-phase.upcoming {
+  background: rgba(248, 250, 252, 0.72);
+}
+.phase-head {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin-bottom: 10px;
+}
+.phase-number {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  color: #fff;
+  font-weight: 900;
+}
+.flow-phase.current .phase-number {
+  background: linear-gradient(135deg, #f97316, #d92d20);
+}
+.flow-phase.done .phase-number {
+  background: linear-gradient(135deg, #059669, #0f766e);
+}
+.phase-head h4 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.phase-head p {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+.flow-step-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.flow-step-list li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 12px;
+  padding: 7px 8px;
+  background: rgba(255, 255, 255, 0.66);
+}
+.flow-step-list li.done {
+  border-color: rgba(5, 150, 105, 0.22);
+  background: rgba(236, 253, 245, 0.8);
+}
+.flow-step-list li.current {
+  border-color: rgba(249, 115, 22, 0.34);
+  background: rgba(255, 247, 237, 0.9);
+}
+.flow-step-list li.pending {
+  border-color: rgba(217, 45, 32, 0.26);
+}
+.flow-index {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-strong, #1d4ed8);
+  font-size: 12px;
+  font-weight: 900;
+}
+.flow-title {
+  min-width: 0;
+  color: var(--text, #0f172a);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+.flow-state {
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: rgba(249, 115, 22, 0.12);
+  color: #9a3412;
+  font-size: 11px;
+  font-weight: 850;
+}
+@media (max-width: 980px) {
+  .flowchart-grid {
+    grid-template-columns: repeat(5, minmax(210px, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .flowchart-grid {
+    grid-template-columns: 1fr;
+    overflow-x: visible;
+  }
+  .flow-phase {
+    min-width: 0;
+  }
+  .flow-phase::after {
+    top: auto;
+    right: auto;
+    bottom: -8px;
+    left: 30px;
+    width: 2px;
+    height: 10px;
+    background: linear-gradient(180deg, rgba(37, 99, 235, 0.42), rgba(6, 182, 212, 0.22));
+  }
 }
 </style>

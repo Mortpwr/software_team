@@ -11,6 +11,9 @@ const planPayload = ref(null);
 const lastTranscriptFile = ref(null);
 
 const isStudent = computed(() => session.value.role === ROLES.STUDENT);
+const overview = computed(() => report.value?.overview || planPayload.value?.plan?.overview || null);
+const courseMap = computed(() => report.value?.courseMap || planPayload.value?.plan?.courseMap || null);
+const moduleGroups = computed(() => report.value?.moduleGroups || []);
 
 onMounted(load);
 
@@ -30,6 +33,14 @@ async function load() {
 
 function earnedFor(key) {
   return planPayload.value?.progress?.modules?.find((item) => item.key === key)?.earned || 0;
+}
+
+function termItems(row, term) {
+  return (row.items || []).filter((item) => Number(item.term) === Number(term));
+}
+
+function riskClass(level) {
+  return level === "高" ? "orange" : level === "中" ? "gray" : "green";
 }
 
 async function saveProgress(event) {
@@ -95,8 +106,30 @@ async function confirmParsedCredits() {
   <div v-if="report?.ok" class="grid cols-2">
     <section>
       <div class="card">
-        <h3>综合风险：{{ report.riskLevel }}</h3>
-        <p class="muted">系统依据培养方案与已获学分进行比对，展示模块缺口和风险提示。</p>
+        <h3>{{ overview?.title || "学业进度分析" }}</h3>
+        <p v-if="overview" class="muted">
+          学制 {{ overview.duration }} · {{ overview.degree }} · 总学分 {{ overview.totalCredits }}
+        </p>
+        <p class="muted">{{ overview?.objective || "系统依据培养方案与已获学分进行比对，展示模块缺口和风险提示。" }}</p>
+        <div class="academic-summary">
+          <div>
+            <span class="muted">要求</span>
+            <strong>{{ report.totalRequired || 0 }}</strong>
+          </div>
+          <div>
+            <span class="muted">已获</span>
+            <strong>{{ report.totalEarned || 0 }}</strong>
+          </div>
+          <div>
+            <span class="muted">缺口</span>
+            <strong>{{ report.totalGap || 0 }}</strong>
+          </div>
+          <div>
+            <span class="muted">风险</span>
+            <strong>{{ report.riskLevel }}</strong>
+          </div>
+        </div>
+        <p v-if="overview?.principle" class="tag gray">{{ overview.principle }}</p>
         <label class="stack">
           上传 PDF 成绩单
           <input type="file" accept=".pdf" @change="uploadTranscript" />
@@ -132,23 +165,77 @@ async function confirmParsedCredits() {
           <div>
             <strong>{{ item.name }}</strong>
             <div class="muted">要求 {{ item.required }} · 已获 {{ item.earned }} · 缺口 {{ item.gap }}</div>
+            <div v-if="item.requirement" class="muted academic-requirement">{{ item.requirement }}</div>
           </div>
-          <span class="tag" :class="item.risk === '高' ? 'orange' : 'green'">风险 {{ item.risk }}</span>
+          <span class="tag" :class="riskClass(item.risk)">风险 {{ item.risk }}</span>
         </div>
       </div>
     </section>
 
-    <section class="card">
-      <h3>维护已获学分</h3>
-      <form class="stack" @submit.prevent="saveProgress">
-        <label v-for="item in planPayload?.plan?.modules || []" :key="item.key">
-          {{ item.name }}（要求 {{ item.required }}）
-          <input type="number" min="0" step="0.5" :name="item.key" :value="earnedFor(item.key)" />
-        </label>
-        <button class="primary">保存</button>
-      </form>
+    <section>
+      <div v-if="moduleGroups.length" class="section-title">155 学分结构</div>
+      <div v-if="moduleGroups.length" class="stack">
+        <article v-for="group in moduleGroups" :key="group.name" class="card">
+          <div class="row between wrap">
+            <strong>{{ group.name }}</strong>
+            <span class="tag" :class="riskClass(group.risk)">缺口 {{ group.gap }}</span>
+          </div>
+          <div class="credit-bar">
+            <span :style="{ width: `${Math.min(100, (Number(group.earned || 0) / Math.max(1, Number(group.required || 1))) * 100)}%` }"></span>
+          </div>
+          <p class="muted">要求 {{ group.required }} · 已获 {{ group.earned }}</p>
+        </article>
+      </div>
+
+      <div class="card">
+        <h3>维护已获学分</h3>
+        <form class="stack" @submit.prevent="saveProgress">
+          <label v-for="item in planPayload?.plan?.modules || []" :key="item.key">
+            {{ item.name }}（要求 {{ item.required }}）
+            <input type="number" min="0" step="0.5" :name="item.key" :value="earnedFor(item.key)" />
+          </label>
+          <button class="primary">保存</button>
+        </form>
+      </div>
     </section>
   </div>
+
+  <section v-if="courseMap" class="card course-map-card">
+    <h3>课程地图</h3>
+    <p class="muted">根据培养方案的开设学期展示，“应修尽修”课程建议按图中学期修读。</p>
+    <div class="course-map">
+      <div class="course-map-head">课程模块</div>
+      <div v-for="term in courseMap.semesters" :key="term" class="course-map-head">{{ term }}</div>
+      <template v-for="row in courseMap.rows" :key="row.group">
+        <div class="course-row-title">{{ row.group }}</div>
+        <div v-for="(_, termIndex) in courseMap.semesters" :key="`${row.group}-${termIndex}`" class="course-cell">
+          <span
+            v-for="item in termItems(row, termIndex + 1)"
+            :key="item.name"
+            class="course-pill"
+            :class="item.type"
+          >
+            {{ item.name }}
+          </span>
+        </div>
+      </template>
+    </div>
+    <div v-if="courseMap.bands?.length" class="course-bands">
+      <div v-for="band in courseMap.bands" :key="band.group" class="course-band">
+        <strong>{{ band.group }}</strong>
+        <span>{{ band.text }}</span>
+      </div>
+    </div>
+  </section>
+
+  <section v-if="report?.graduationRequirements?.length" class="card">
+    <h3>毕业要求</h3>
+    <div class="requirement-grid">
+      <span v-for="(item, index) in report.graduationRequirements" :key="item" class="tag gray">
+        {{ index + 1 }}. {{ item }}
+      </span>
+    </div>
+  </section>
 
   <div v-else-if="isStudent" class="card">
     <div>{{ report?.message || "加载中" }}</div>
@@ -160,3 +247,137 @@ async function confirmParsedCredits() {
     <div v-for="item in report?.suggestions || []" :key="item.focus" class="card">{{ item.hint }}</div>
   </div>
 </template>
+
+<style scoped>
+.academic-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.academic-summary > div {
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+.academic-summary span,
+.academic-summary strong {
+  display: block;
+}
+.academic-summary strong {
+  margin-top: 5px;
+  color: var(--primary-strong, #1d4ed8);
+  font-size: 24px;
+}
+.academic-requirement {
+  max-width: 720px;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.credit-bar {
+  height: 9px;
+  margin: 12px 0 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.18);
+  overflow: hidden;
+}
+.credit-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+}
+.course-map-card {
+  margin-top: 16px;
+  overflow: hidden;
+}
+.course-map {
+  display: grid;
+  grid-template-columns: 150px repeat(8, minmax(118px, 1fr));
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.course-map-head,
+.course-row-title,
+.course-cell {
+  min-height: 48px;
+  border-radius: 12px;
+  padding: 10px;
+}
+.course-map-head {
+  display: grid;
+  place-items: center;
+  background: #0f4c75;
+  color: #fff;
+  font-weight: 850;
+  text-align: center;
+}
+.course-row-title {
+  display: flex;
+  align-items: center;
+  background: rgba(15, 76, 117, 0.82);
+  color: #fff;
+  font-weight: 850;
+}
+.course-cell {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  background: rgba(248, 250, 252, 0.72);
+}
+.course-pill {
+  display: block;
+  border-radius: 10px;
+  padding: 8px 9px;
+  background: #d8e8f4;
+  color: #0f3754;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+}
+.course-pill.practice {
+  background: #cce7e5;
+}
+.course-pill.placeholder {
+  background: transparent;
+  color: #0f3754;
+  text-align: left;
+}
+.course-bands {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.course-band {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(204, 231, 229, 0.82);
+}
+.course-band strong {
+  color: #0f4c75;
+}
+.requirement-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 760px) {
+  .academic-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .course-map {
+    grid-template-columns: 128px repeat(8, minmax(112px, 1fr));
+  }
+  .course-band {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
