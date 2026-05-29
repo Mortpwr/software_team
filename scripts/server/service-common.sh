@@ -3,7 +3,16 @@
 # 被 update-app.sh / restart-backend.sh / once-setup-china.sh source
 
 service_common_init() {
-  BASE="${BASE:-/opt/student_service}"
+  if [[ -z "${BASE:-}" ]]; then
+    if [[ -d /opt/student_service ]] && [[ -w /opt/student_service ]]; then
+      BASE="/opt/student_service"
+    elif [[ -d "$HOME/student_service" ]]; then
+      BASE="$HOME/student_service"
+    else
+      BASE="/opt/student_service"
+    fi
+  fi
+  BASE="${BASE:-$HOME/student_service}"
   APP_ROOT="${APP_ROOT:-$BASE/software_team}"
   VENV_DIR="${VENV_DIR:-$BASE/venv}"
   UPLOAD_DIR="${UPLOAD_DIR:-$BASE/uploads}"
@@ -13,7 +22,19 @@ service_common_init() {
   LOG_DIR="${LOG_DIR:-$BASE/logs}"
   PID_FILE="${PID_FILE:-$BASE/student-service.pid}"
   BACKUP_ROOT="${BACKUP_ROOT:-$BASE/backups}"
+  if [[ ! -d "$BACKUP_ROOT" ]] || [[ ! -w "$BACKUP_ROOT" ]]; then
+    BACKUP_ROOT="$HOME/student_service_backups"
+  fi
   RUN_USER="${RUN_USER:-$(whoami)}"
+}
+
+ensure_writable_dir() {
+  local dir="$1"
+  mkdir -p "$dir" 2>/dev/null || true
+  if [[ -d "$dir" ]] && [[ -w "$dir" ]]; then
+    return 0
+  fi
+  return 1
 }
 
 ensure_run_as_app_user() {
